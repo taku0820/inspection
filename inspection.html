@@ -336,7 +336,10 @@ body.light .theme-btn { border-color: rgba(0,0,0,0.2); color: #1e293b; }
   <div class="modal">
     <div class="modal-header">
       <div class="modal-title" id="hist-modal-title">📁 点検履歴</div>
-      <button class="modal-close" onclick="closeHistModal()">✕ 閉じる</button>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="modal-close" style="background:rgba(239,68,68,0.3);border-color:rgba(239,68,68,0.5)" onclick="clearEquipHistory()">🗑 全削除</button>
+        <button class="modal-close" onclick="closeHistModal()">✕ 閉じる</button>
+      </div>
     </div>
     <div class="modal-body">
       <div id="hist-modal-body"></div>
@@ -762,10 +765,13 @@ function openHistModal(equipId) {
         </div>`;
       }).join("");
       const memo = h.memo ? `<div class="mhist-memo">📌 ${h.memo}</div>` : "";
+      const globalIdx = history.findIndex(r => r.timestamp === h.timestamp && r.equipId === h.equipId);
       return `<div class="mhist-card">
         <div class="mhist-header">
           <span class="mhist-time">🕐 ${h.timestamp}</span>
           <span class="mhist-op">👤 ${h.operator}</span>
+          <button onclick="deleteOneHistory(${globalIdx},'${equipId}')"
+            style="margin-left:auto;background:#2d0a0a;color:#f87171;border:1px solid #dc2626;border-radius:6px;padding:2px 10px;font-size:12px;cursor:pointer">✕ 削除</button>
         </div>
         <div class="mhist-items">${itemRows}</div>
         ${memo}
@@ -791,6 +797,40 @@ function buildPartsText(detail) {
 
 function closeHistModal() {
   document.getElementById("hist-modal").classList.remove("open");
+}
+
+// 1件削除
+function deleteOneHistory(idx, equipId) {
+  if (!confirm("この履歴を削除しますか？\n※スプレッドシートのデータは削除されません")) return;
+  history.splice(idx, 1);
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+  renderHistory();
+  renderEquipGrid();
+  // モーダルを再描画
+  const remaining = history.filter(h => h.equipId === equipId);
+  if (remaining.length === 0) {
+    closeHistModal();
+  } else {
+    openHistModal(equipId);
+  }
+}
+
+// 設備の全履歴削除
+function clearEquipHistory() {
+  const title = document.getElementById("hist-modal-title").textContent;
+  if (!confirm("この設備の履歴をすべて削除しますか？\n※スプレッドシートのデータは削除されません")) return;
+  const equipId = history.find(h => title.includes(h.equipName))?.equipId;
+  if (!equipId) {
+    // フォールバック：モーダルで開いている設備IDを取得
+    history = history.filter(h => !title.includes(h.equipName));
+  } else {
+    history = history.filter(h => h.equipId !== equipId);
+  }
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+  renderHistory();
+  renderEquipGrid();
+  closeHistModal();
+  showToast("履歴を削除しました", "success");
 }
 // モーダル外クリックで閉じる
 document.addEventListener("click", e => {
@@ -843,10 +883,14 @@ function renderEquipGrid() {
       const btn = document.createElement("button");
       btn.className = "equip-btn" + (currentEquip?.id === equip.id ? " active" : "");
       const equipHistory = history.filter(h => h.equipId === equip.id);
-      btn.innerHTML = `<div class="equip-id">${equip.id}</div>
-        <div class="equip-name">${equip.name}</div>
-        <div class="equip-count">${equip.items.length}項目${equipHistory.length > 0 ? ' · 履歴' + equipHistory.length + '件' : ''}</div>
-        ${equipHistory.length > 0 ? `<button class="equip-hist-btn" onclick="event.stopPropagation();openHistModal('${equip.id}')">📁 履歴を見る</button>` : ''}`;
+      const histBtn = equipHistory.length > 0
+        ? '<button class="equip-hist-btn" onclick="event.stopPropagation();openHistModal(\'' + equip.id + '\')">📁 履歴を見る</button>'
+        : '';
+      const histCount = equipHistory.length > 0 ? ' · 履歴' + equipHistory.length + '件' : '';
+      btn.innerHTML = '<div class="equip-id">' + equip.id + '</div>'
+        + '<div class="equip-name">' + equip.name + '</div>'
+        + '<div class="equip-count">' + equip.items.length + '項目' + histCount + '</div>'
+        + histBtn;
       btn.onclick = () => selectEquip(equip);
       grid.appendChild(btn);
     });
