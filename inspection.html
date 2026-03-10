@@ -109,6 +109,23 @@ main { max-width: 900px; margin: 0 auto; padding: 20px 16px; display: flex; flex
 }
 .replace-form.show { display: block; }
 .replace-title { font-size: 13px; color: #60a5fa; font-weight: 700; margin-bottom: 10px; }
+/* 複数部品エントリ */
+.part-entry {
+  background: #0f172a; border: 1px solid #2563eb;
+  border-radius: 8px; padding: 10px 12px; margin-bottom: 8px;
+  position: relative;
+}
+.part-entry-num { font-size: 11px; color: #60a5fa; font-weight: 700; margin-bottom: 8px; }
+.part-remove-btn {
+  position: absolute; top: 8px; right: 8px;
+  background: #2d0a0a; color: #f87171; border: 1px solid #dc2626;
+  border-radius: 6px; padding: 2px 8px; font-size: 12px; cursor: pointer;
+}
+.add-part-btn {
+  width: 100%; margin-top: 4px; background: #0c1a2e; color: #60a5fa;
+  border: 1px dashed #2563eb; border-radius: 8px;
+  padding: 10px; font-size: 14px; font-weight: 700; cursor: pointer;
+}
 .replace-grid { display: flex; gap: 12px; flex-wrap: wrap; }
 .replace-grid > div { display: flex; flex-direction: column; gap: 4px; }
 .small-label { font-size: 12px; color: #94a3b8; }
@@ -256,10 +273,17 @@ const CONFIG = {
       { name:"ドライヤーコンデンサ（汚れ）",        unit:"式" },
       { name:"エアクリーナーエレメント",            unit:"個" },
       // 潤滑装置
-      { name:"オイル 6000h交換",       unit:"L"  },
-      { name:"オイルフィルター 6000h交換",                    unit:"個" },
-      { name:"オイルセパレータエレメント 6000h交換", unit:"個" },
-      { name:"オイルリターン（詰まり）",   unit:"式" },
+      { name:"オイル 6000h交換",                    unit:"L",  parts:[
+        { partName:"ロングライフHPオイル 20L",       partNo:"" },
+      ]},
+      { name:"オイルフィルター 6000h交換",          unit:"個", parts:[
+        { partName:"オイルフィルター",               partNo:"37438 09200" },
+      ]},
+      { name:"オイルセパレータエレメント 6000h交換", unit:"個", parts:[
+        { partName:"オイルセパレータエレメント",     partNo:"34224 02801" },
+        { partName:"O-リング",                       partNo:"03402 15110" },
+      ]},
+      { name:"オイルリターン（詰まり）",             unit:"式" },
     ]},
     { id: "CMP-002", name: "自動ベンダー用 スクリューコンプレッサー(22kw)", items: [
       // 電動機
@@ -268,18 +292,28 @@ const CONFIG = {
       { name:"配線（抜け・損傷）",                  unit:"式" },
       { name:"配管（緩み）",                        unit:"式" },
       { name:"オイル漏れ",                          unit:"式" },
-      { name:"エア漏れ",                            unit:"式" },
+      { name:"エア漏れ",                            unit:"式", parts:[
+        { partName:"セーフティバルブ",               partNo:"72 15100 0270 03" },
+      ]},
       // 吸気・冷却装置
       { name:"ダストフィルター（汚れ）",            unit:"枚" },
       { name:"オイルクーラー・アフタークーラー",    unit:"式" },
       { name:"シロッコファン（汚れ）",              unit:"式" },
       { name:"ドライヤーコンデンサ（汚れ）",        unit:"式" },
-      { name:"エアクリーナーエレメント",            unit:"個" },
+      { name:"エアクリーナーエレメント",            unit:"個", parts:[
+        { partName:"エアクリーナエレメント",         partNo:"71 10116 3801 10" },
+      ]},
       // 潤滑装置
-      { name:"オイル 6000h交換",       unit:"L"  },
-      { name:"オイルフィルター 6000h交換",                    unit:"個" },
-      { name:"オイルセパレータエレメント 6000h交換", unit:"個" },
-      { name:"オイルリターン（詰まり）",   unit:"式" },
+      { name:"オイル 6000h交換",                    unit:"L",  parts:[
+        { partName:"Z-6000オイル 20L",               partNo:"71 10044 8069 00" },
+      ]},
+      { name:"オイルフィルター 6000h交換",          unit:"個", parts:[
+        { partName:"オイルフィルター",               partNo:"71 12210 8074 10" },
+      ]},
+      { name:"オイルセパレータエレメント 6000h交換", unit:"個", parts:[
+        { partName:"セパレータコンプリート",         partNo:"72 12210 0803 01" },
+      ]},
+      { name:"オイルリターン（詰まり）",             unit:"式" },
     ]},
     { id: "CMP-003", name: "中央受電室 スクリューコンプレッサー(55kw)",     items: [
       // 電動機
@@ -296,10 +330,17 @@ const CONFIG = {
       { name:"ドライヤーコンデンサ（汚れ）",        unit:"式" },
       { name:"エアクリーナーエレメント",            unit:"個" },
       // 潤滑装置
-      { name:"オイル 6000h交換",       unit:"L"  },
-      { name:"オイルフィルター 6000h交換",                    unit:"個" },
-      { name:"オイルセパレータエレメント 6000h交換", unit:"個" },
-      { name:"オイルリターン（詰まり）",   unit:"式" },
+      { name:"オイル 6000h交換",                    unit:"L",  parts:[
+        { partName:"ロングライフSPオイル 20L",       partNo:"" },
+      ]},
+      { name:"オイルフィルター 6000h交換",          unit:"個", parts:[
+        { partName:"オイルフィルター",               partNo:"37438 09700" },
+      ]},
+      { name:"オイルセパレータエレメント 6000h交換", unit:"個", parts:[
+        { partName:"オイルセパレータエレメント",     partNo:"34224 03000" },
+        { partName:"O-リング",                       partNo:"03402 15145" },
+      ]},
+      { name:"オイルリターン（詰まり）",             unit:"式" },
     ]},
     { id: "CMP-004", name: "東側機械室 スクリューコンプレッサー(22kw)",     items: [
       // 電動機
@@ -308,18 +349,28 @@ const CONFIG = {
       { name:"配線（抜け・損傷）",                  unit:"式" },
       { name:"配管（緩み）",                        unit:"式" },
       { name:"オイル漏れ",                          unit:"式" },
-      { name:"エア漏れ",                            unit:"式" },
+      { name:"エア漏れ",                            unit:"式", parts:[
+        { partName:"セーフティバルブ",               partNo:"72 15100 0270 03" },
+      ]},
       // 吸気・冷却装置
       { name:"ダストフィルター（汚れ）",            unit:"枚" },
       { name:"オイルクーラー・アフタークーラー",    unit:"式" },
       { name:"シロッコファン（汚れ）",              unit:"式" },
       { name:"ドライヤーコンデンサ（汚れ）",        unit:"式" },
-      { name:"エアクリーナーエレメント",            unit:"個" },
+      { name:"エアクリーナーエレメント",            unit:"個", parts:[
+        { partName:"エアクリーナエレメント",         partNo:"71 10116 3801 10" },
+      ]},
       // 潤滑装置
-      { name:"オイル 6000h交換",       unit:"L"  },
-      { name:"オイルフィルター 6000h交換",                    unit:"個" },
-      { name:"オイルセパレータエレメント 6000h交換", unit:"個" },
-      { name:"オイルリターン（詰まり）",   unit:"式" },
+      { name:"オイル 6000h交換",                    unit:"L",  parts:[
+        { partName:"Z-6000オイル 20L",               partNo:"71 10044 8069 00" },
+      ]},
+      { name:"オイルフィルター 6000h交換",          unit:"個", parts:[
+        { partName:"オイルフィルター",               partNo:"71 12210 8074 10" },
+      ]},
+      { name:"オイルセパレータエレメント 6000h交換", unit:"個", parts:[
+        { partName:"セパレータコンプリート",         partNo:"72 12210 0803 01" },
+      ]},
+      { name:"オイルリターン（詰まり）",             unit:"式" },
     ]},
         { id: "PS56", name: "プレス機 PS56", items: [
       // 安全装置
@@ -601,6 +652,7 @@ function selectEquip(equip) {
   checks = {};
   partDetails = {};
   itemNotes = {};
+  // 交換ステータスの部品エントリもリセット済み（partDetails={}）
   document.getElementById("memo").value = "";
   document.getElementById("error-banner").style.display = "none";
   document.getElementById("submit-btn").textContent = "🚀 点検完了・送信";
@@ -634,6 +686,7 @@ function renderItems() {
   currentEquip.items.forEach(itemObj => {
     const name = itemObj.name;
     const unit = itemObj.unit || "個";
+    const parts = itemObj.parts || [];
     const safeId = name.replace(/[^a-zA-Z0-9ぁ-んァ-ン一-龥]/g, "_");
     const row = document.createElement("div");
     row.className = "item-row";
@@ -659,24 +712,22 @@ function renderItems() {
       </div>
       <div class="replace-form" id="replace-${safeId}">
         <div class="replace-title">🔧 交換部品詳細</div>
-        <div class="replace-grid">
-          <div><span class="small-label">部品名</span>
-            <input class="small-input" type="text" placeholder="例: オイルフィルター"
-              oninput="updatePart('${safeId}','partName',this.value)"></div>
-          <div><span class="small-label">型番</span>
-            <input class="small-input" type="text" placeholder="例: OF-2023-A"
-              oninput="updatePart('${safeId}','partNo',this.value)"></div>
-          <div><span class="small-label">数量　<strong style="color:#60a5fa;font-size:14px">${unit}</strong></span>
-            <input class="small-input qty" type="number" placeholder="1" min="1"
-              oninput="updatePart('${safeId}','qty',this.value)">
-          </div>
+        ${parts && parts.length > 0 ? `
+        <div class="parts-select-wrap">
+          <span class="parts-select-label">📦 登録済み部品から選択して追加</span>
+          <select class="parts-select" onchange="selectPresetPart('${safeId}', this.value, this)">
+            <option value="">-- 部品を選択 --</option>
+            ${parts.map((p,i) => `<option value="${i}">${p.partName}　${p.partNo ? '／ ' + p.partNo : ''}</option>`).join('')}
+          </select>
         </div>
+        <div class="parts-divider">または手入力</div>
+        ` : ''}
+        <div id="part-entries-${safeId}"></div>
+        <button class="add-part-btn" onclick="addPartEntry('${safeId}','${unit}')">＋ 部品を追加</button>
       </div>`;
 
-    // 単位をpartDetailsに事前セット
-    if (!partDetails[safeId]) partDetails[safeId] = {};
-    partDetails[safeId].unit = unit;
-    partDetails[safeId]._displayName = name;
+    // partDetailsを配列で初期化
+    if (!partDetails[safeId]) partDetails[safeId] = { unit, entries: [] };
 
     list.appendChild(row);
   });
@@ -722,9 +773,76 @@ function setAllOk() {
   });
 }
 
+// 部品エントリを追加（手入力用の行を追加）
+function addPartEntry(safeId, unit, presetName, presetNo) {
+  if (!partDetails[safeId]) partDetails[safeId] = { unit, entries: [] };
+  const idx = partDetails[safeId].entries.length;
+  partDetails[safeId].entries.push({ partName: presetName||"", partNo: presetNo||"", qty: 1 });
+
+  const container = document.getElementById("part-entries-" + safeId);
+  const entry = document.createElement("div");
+  entry.className = "part-entry";
+  entry.id = `entry-${safeId}-${idx}`;
+  entry.innerHTML = `
+    <div class="part-entry-num">部品 ${idx + 1}</div>
+    <button class="part-remove-btn" onclick="removePartEntry('${safeId}',${idx})">✕ 削除</button>
+    <div class="replace-grid">
+      <div><span class="small-label">部品名</span>
+        <input class="small-input" id="pname-${safeId}-${idx}" type="text"
+          placeholder="例: オイルフィルター" value="${presetName||''}"
+          oninput="updatePartEntry('${safeId}',${idx},'partName',this.value)"></div>
+      <div><span class="small-label">型番</span>
+        <input class="small-input" id="pno-${safeId}-${idx}" type="text"
+          placeholder="例: OF-001" value="${presetNo||''}"
+          oninput="updatePartEntry('${safeId}',${idx},'partNo',this.value)"></div>
+      <div><span class="small-label">数量　<strong style="color:#60a5fa;font-size:14px">${unit}</strong></span>
+        <input class="small-input qty" type="number" placeholder="1" min="1" value="1"
+          oninput="updatePartEntry('${safeId}',${idx},'qty',this.value)"></div>
+    </div>`;
+  container.appendChild(entry);
+  // 番号を更新
+  refreshEntryNums(safeId);
+}
+
+function removePartEntry(safeId, idx) {
+  partDetails[safeId].entries[idx] = null;
+  const el = document.getElementById(`entry-${safeId}-${idx}`);
+  if (el) el.remove();
+  refreshEntryNums(safeId);
+}
+
+function refreshEntryNums(safeId) {
+  const container = document.getElementById("part-entries-" + safeId);
+  if (!container) return;
+  let num = 1;
+  container.querySelectorAll(".part-entry").forEach(el => {
+    const numEl = el.querySelector(".part-entry-num");
+    if (numEl) numEl.textContent = "部品 " + num++;
+  });
+}
+
+function updatePartEntry(safeId, idx, field, value) {
+  if (!partDetails[safeId] || !partDetails[safeId].entries[idx]) return;
+  partDetails[safeId].entries[idx][field] = value;
+}
+
+// 登録済み部品を選択 → 行を自動追加
+function selectPresetPart(safeId, idx, selectEl) {
+  if (idx === "") return;
+  const itemObj = currentEquip.items.find(i =>
+    i.name.replace(/[^a-zA-Z0-9ぁ-んァ-ン一-龥]/g, "_") === safeId
+  );
+  if (!itemObj || !itemObj.parts) return;
+  const p = itemObj.parts[parseInt(idx)];
+  if (!p) return;
+  const unit = itemObj.unit || "個";
+  addPartEntry(safeId, unit, p.partName, p.partNo);
+  selectEl.value = "";
+}
+
+// 旧updatePart（互換用）
 function updatePart(item, field, value) {
-  if (!partDetails[item]) partDetails[item] = {};
-  partDetails[item][field] = value;
+  if (!partDetails[item]) partDetails[item] = { unit:"個", entries:[] };
 }
 
 // 項目別備考
@@ -767,10 +885,11 @@ async function handleSubmit() {
   currentEquip.items.forEach(itemObj => {
     const safeId = itemObj.name.replace(/[^a-zA-Z0-9ぁ-んァ-ン一-龥]/g, "_");
     if (checks[safeId]) namedChecks[itemObj.name] = checks[safeId];
-    if (partDetails[safeId] && Object.keys(partDetails[safeId]).length > 0) {
-      const pd = { ...partDetails[safeId] };
-      delete pd._displayName;
-      namedParts[itemObj.name] = pd;
+    if (partDetails[safeId] && partDetails[safeId].entries && partDetails[safeId].entries.filter(Boolean).length > 0) {
+      namedParts[itemObj.name] = {
+        unit: partDetails[safeId].unit,
+        entries: partDetails[safeId].entries.filter(Boolean),
+      };
     }
     if (itemNotes[safeId]) namedNotes[itemObj.name] = itemNotes[safeId];
   });
