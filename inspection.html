@@ -302,6 +302,23 @@ body.light .theme-btn { border-color: rgba(0,0,0,0.2); color: #1e293b; }
 .mhist-parts { font-size: 12px; color: #60a5fa; margin-top: 2px; }
 .mhist-memo { font-size: 13px; color: var(--prev-label); margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border); }
 .no-history { text-align: center; color: var(--text3); padding: 30px; }
+/* 構成図モーダル */
+.diag-modal { background: var(--bg2); border-radius:16px; width:100%; max-width:800px; margin:auto; box-shadow:0 8px 40px #0008; }
+.diag-modal-header { background: var(--header-bg); border-radius:16px 16px 0 0; padding:16px 20px; display:flex; align-items:center; justify-content:space-between; }
+.diag-tabs { display:flex; gap:8px; flex-wrap:wrap; padding:14px 16px 0; border-bottom:1px solid var(--border); }
+.diag-tab { background:transparent; border:none; border-bottom:3px solid transparent; padding:8px 14px; font-size:14px; font-weight:700; color:var(--text2); cursor:pointer; }
+.diag-tab.active { color:var(--blue); border-bottom-color:var(--blue); }
+.diag-body { padding:16px; max-height:75vh; overflow-y:auto; text-align:center; }
+.diag-body img { max-width:100%; border-radius:8px; cursor:zoom-in; transition:transform .2s; }
+.diag-body img.zoomed { cursor:zoom-out; transform:scale(1.0); }
+.diag-loading { color:var(--text3); padding:40px; }
+/* 設備ボタンに構成図ボタン追加 */
+.equip-diag-btn {
+  display:block; width:100%; margin-top:4px;
+  background:transparent; border:1px solid var(--border);
+  border-radius:6px; padding:4px; font-size:11px;
+  color:#a78bfa; cursor:pointer; font-weight:700;
+}
 /* 設備ボタンに履歴ボタン追加 */
 .equip-hist-btn {
   display: block; width: 100%; margin-top: 6px;
@@ -330,6 +347,20 @@ body.light .theme-btn { border-color: rgba(0,0,0,0.2); color: #1e293b; }
     </div>
   </div>
 </header>
+
+<!-- 構成図モーダル -->
+<div class="modal-overlay" id="diag-modal">
+  <div class="diag-modal">
+    <div class="diag-modal-header">
+      <div class="modal-title" id="diag-modal-title">📋 構成図</div>
+      <button class="modal-close" onclick="closeDiagModal()">✕ 閉じる</button>
+    </div>
+    <div class="diag-tabs" id="diag-tabs"></div>
+    <div class="diag-body" id="diag-body">
+      <div class="diag-loading">読み込み中...</div>
+    </div>
+  </div>
+</div>
 
 <!-- 履歴モーダル -->
 <div class="modal-overlay" id="hist-modal">
@@ -390,7 +421,9 @@ const CONFIG = {
   // items: { name:"項目名", unit:"単位" } の形式
   // unit は交換時に使う単位。交換しない項目は unit:"式" にしてください
   equipment: [
-    { id: "CMP-001", name: "TP用 中圧 スクリューコンプレッサー(18.5kw)",    items: [
+    { id: "CMP-001", name: "TP用 中圧 スクリューコンプレッサー(18.5kw)", diagrams: [
+      { title:"構成図", url:"https://taku0820.github.io/inspection/images/cmp001_1.jpg" },
+    ], items: [
       // 電動機
       { name:"モーター（異音・振動）",              unit:"式" },
       // 配線・配管関係
@@ -417,7 +450,9 @@ const CONFIG = {
       ]},
       { name:"オイルリターン（詰まり）",             unit:"式" },
     ]},
-    { id: "CMP-002", name: "自動ベンダー用 スクリューコンプレッサー(22kw)", items: [
+    { id: "CMP-002", name: "自動ベンダー用 スクリューコンプレッサー(22kw)", diagrams: [
+      { title:"構成図", url:"https://taku0820.github.io/inspection/images/cmp002_1.jpg" },
+    ], items: [
       // 電動機
       { name:"モーター（異音・振動）",              unit:"式" },
       // 配線・配管関係
@@ -447,7 +482,9 @@ const CONFIG = {
       ]},
       { name:"オイルリターン（詰まり）",             unit:"式" },
     ]},
-    { id: "CMP-003", name: "中央受電室 スクリューコンプレッサー(55kw)",     items: [
+    { id: "CMP-003", name: "中央受電室 スクリューコンプレッサー(55kw)", diagrams: [
+      { title:"構成図", url:"https://taku0820.github.io/inspection/images/cmp003_1.jpg" },
+    ], items: [
       // 電動機
       { name:"モーター（異音・振動）",              unit:"式" },
       // 配線・配管関係
@@ -474,7 +511,9 @@ const CONFIG = {
       ]},
       { name:"オイルリターン（詰まり）",             unit:"式" },
     ]},
-    { id: "CMP-004", name: "東側機械室 スクリューコンプレッサー(22kw)",     items: [
+    { id: "CMP-004", name: "東側機械室 スクリューコンプレッサー(22kw)", diagrams: [
+      { title:"構成図", url:"https://taku0820.github.io/inspection/images/cmp004_1.jpg" },
+    ], items: [
       // 電動機
       { name:"モーター（異音・振動）",              unit:"式" },
       // 配線・配管関係
@@ -799,6 +838,54 @@ function closeHistModal() {
   document.getElementById("hist-modal").classList.remove("open");
 }
 
+// ── 構成図モーダル ───────────────────────────
+let currentDiagEquipId = null;
+
+function openDiagModal(equipId) {
+  const equip = CONFIG.equipment.find(e => e.id === equipId);
+  if (!equip || !equip.diagrams || equip.diagrams.length === 0) return;
+  currentDiagEquipId = equipId;
+  document.getElementById("diag-modal-title").textContent = "📋 " + equip.name + " — 構成図";
+
+  // タブ生成
+  const tabs = document.getElementById("diag-tabs");
+  tabs.innerHTML = equip.diagrams.map((d, i) =>
+    '<button class="diag-tab' + (i===0?' active':'') + '" onclick="switchDiagTab(' + i + ')">' + d.title + '</button>'
+  ).join('');
+
+  showDiagImage(equip.diagrams[0].url);
+  document.getElementById("diag-modal").classList.add("open");
+}
+
+function switchDiagTab(idx) {
+  const equip = CONFIG.equipment.find(e => e.id === currentDiagEquipId);
+  if (!equip) return;
+  document.querySelectorAll(".diag-tab").forEach((t, i) => t.classList.toggle("active", i===idx));
+  showDiagImage(equip.diagrams[idx].url);
+}
+
+function showDiagImage(url) {
+  const body = document.getElementById("diag-body");
+  body.innerHTML = '<div class="diag-loading">📷 読み込み中...</div>';
+  const img = new Image();
+  img.onload = () => {
+    body.innerHTML = '';
+    img.className = '';
+    img.onclick = () => img.classList.toggle("zoomed");
+    body.appendChild(img);
+  };
+  img.onerror = () => {
+    body.innerHTML = '<div class="diag-loading" style="color:#f87171">⚠ 画像を読み込めませんでした<br><small style="word-break:break-all">' + url + '</small><br><br>GitHubに画像をアップロードしてください</div>';
+  };
+  img.src = url;
+  img.style.maxWidth = "100%";
+}
+
+function closeDiagModal() {
+  document.getElementById("diag-modal").classList.remove("open");
+  currentDiagEquipId = null;
+}
+
 // 1件削除
 function deleteOneHistory(idx, equipId) {
   if (!confirm("この履歴を削除しますか？\n※スプレッドシートのデータは削除されません")) return;
@@ -835,6 +922,7 @@ function clearEquipHistory() {
 // モーダル外クリックで閉じる
 document.addEventListener("click", e => {
   if (e.target.id === "hist-modal") closeHistModal();
+  if (e.target.id === "diag-modal") closeDiagModal();
 });
 
 window.onload = () => {
@@ -886,11 +974,14 @@ function renderEquipGrid() {
       const histBtn = equipHistory.length > 0
         ? '<button class="equip-hist-btn" onclick="event.stopPropagation();openHistModal(\'' + equip.id + '\')">📁 履歴を見る</button>'
         : '';
+      const diagBtn = (equip.diagrams && equip.diagrams.length > 0)
+        ? '<button class="equip-diag-btn" onclick="event.stopPropagation();openDiagModal(\'' + equip.id + '\')">📋 構成図を見る</button>'
+        : '';
       const histCount = equipHistory.length > 0 ? ' · 履歴' + equipHistory.length + '件' : '';
       btn.innerHTML = '<div class="equip-id">' + equip.id + '</div>'
         + '<div class="equip-name">' + equip.name + '</div>'
         + '<div class="equip-count">' + equip.items.length + '項目' + histCount + '</div>'
-        + histBtn;
+        + diagBtn + histBtn;
       btn.onclick = () => selectEquip(equip);
       grid.appendChild(btn);
     });
@@ -1155,16 +1246,17 @@ async function handleSubmit() {
     memo: document.getElementById("memo").value,
   };
 
-  // ★ URLSearchParams POST — スタンドアロンHTMLなのでCORSエラーにならない
+  // GETパラメータ方式（ローカルファイル・GitHub Pages どちらでも動作）
   try {
-    const body = new URLSearchParams({ payload: JSON.stringify(payload) });
-    const res = await fetch(CONFIG.GAS_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: body.toString(),
+    const encoded = encodeURIComponent(JSON.stringify(payload));
+    const gasUrl = CONFIG.GAS_URL + "?payload=" + encoded;
+    await new Promise((resolve) => {
+      const img = new Image();
+      img.onload = img.onerror = resolve; // GASはJSONを返すのでonerrorになるが送信は成功
+      img.src = gasUrl;
+      setTimeout(resolve, 8000); // 8秒タイムアウト
     });
-    const json = await res.json();
-    console.log("GAS response:", json);
+    console.log("GAS送信完了（GET）");
   } catch(err) {
     console.error("送信エラー:", err);
     showToast("送信エラー: " + err.message, "error");
