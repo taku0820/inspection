@@ -219,21 +219,43 @@ const CONFIG = {
   GAS_URL: "https://script.google.com/macros/s/AKfycbwsIz_kuYaE9Bgou0eRjlXy_L1T_rUZOKICNaggaK8ib44I2QfrzQqzInevVxThDkqSpQ/exec",
   operators: ["箱田", "白濵", "土生", "山田"],
   // items: { name:"項目名", unit:"単位" } の形式
-  // unit は交換時に使う単位。交換しない項目は unit:"－" にしてください
+  // unit は交換時に使う単位。交換しない項目は unit:"式" にしてください
   equipment: [
-    { id: "CMP-001", name: "三井コンプレッサー", items: [
-      { name:"ドレン排出",  unit:"式" },
-      { name:"圧力確認",    unit:"式" },
-      { name:"Vベルト張り", unit:"本" },
-      { name:"油量確認",    unit:"L"  },
-      { name:"異音・振動",  unit:"式" },
+    { id: "三井-001", name: "三井コンプレッサー", items: [
+      // 電動機
+      { name:"モーター（異音・振動）",         unit:"式" },
+      // 配線・配管関係
+      { name:"配線（抜け・損傷）",             unit:"式" },
+      { name:"配管（緩み）",                   unit:"式" },
+      { name:"オイル漏れ",                     unit:"式" },
+      { name:"エア漏れ",                       unit:"式" },
+      // 吸気・冷却装置
+      { name:"ダストフィルター（汚れ）",       unit:"枚" },
+      { name:"オイルクーラー・アフタークーラー", unit:"式" },
+      { name:"シロッコファン（汚れ）",         unit:"式" },
+      { name:"ドライヤーコンデンサ（汚れ）",   unit:"式" },
+      { name:"エアクリーナーエレメント",       unit:"個" },
+      // 潤滑装置
+      { name:"オイル（油量・汚れ）",           unit:"L"  },
+      { name:"オイルフィルター",               unit:"個" },
+      { name:"オイルセパレータエレメント",     unit:"個" },
+      { name:"オイルリターン（詰まり）",       unit:"式" },
     ]},
-    { id: "CMP-002", name: "北越コンプレッサー", items: [
-      { name:"ドレン排出",  unit:"式" },
-      { name:"圧力確認",    unit:"式" },
-      { name:"Vベルト張り", unit:"本" },
-      { name:"油量確認",    unit:"L"  },
-      { name:"異音・振動",  unit:"式" },
+    { id: "北越-001", name: "北越コンプレッサー", items: [
+      { name:"モーター（異音・振動）",         unit:"式" },
+      { name:"配線（抜け・損傷）",             unit:"式" },
+      { name:"配管（緩み）",                   unit:"式" },
+      { name:"オイル漏れ",                     unit:"式" },
+      { name:"エア漏れ",                       unit:"式" },
+      { name:"ダストフィルター（汚れ）",       unit:"枚" },
+      { name:"オイルクーラー・アフタークーラー", unit:"式" },
+      { name:"シロッコファン（汚れ）",         unit:"式" },
+      { name:"ドライヤーコンデンサ（汚れ）",   unit:"式" },
+      { name:"エアクリーナーエレメント",       unit:"個" },
+      { name:"オイル（油量・汚れ）",           unit:"L"  },
+      { name:"オイルフィルター",               unit:"個" },
+      { name:"オイルセパレータエレメント",     unit:"個" },
+      { name:"オイルリターン（詰まり）",       unit:"式" },
     ]},
     { id: "LAT-001", name: "旋盤 #1", items: [
       { name:"チップ摩耗確認", unit:"個" },
