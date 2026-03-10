@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>設備点検記録</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: #0a0a0f; color: #e2e8f0;
+  font-family: 'Noto Sans JP', 'Segoe UI', sans-serif;
+  min-height: 100vh; padding-bottom: 60px;
+}
+/* Toast */
+#toast {
+  display: none; position: fixed; top: 20px; right: 20px; z-index: 9999;
+  padding: 14px 24px; border-radius: 10px; border: 1px solid;
+  font-weight: 700; font-size: 16px; box-shadow: 0 4px 20px #0008;
+}
+/* Header */
+header {
+  background: linear-gradient(135deg, #111827 0%, #1e1b4b 100%);
+  border-bottom: 2px solid #334155;
+  padding: 16px 20px; position: sticky; top: 0; z-index: 100;
+}
+.header-inner {
+  max-width: 900px; margin: 0 auto;
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
+}
+.app-title { font-size: 22px; font-weight: 900; color: #60a5fa; letter-spacing: 1px; }
+.app-sub { font-size: 12px; color: #64748b; letter-spacing: 2px; margin-top: 2px; }
+.operator-box { display: flex; align-items: center; gap: 10px; }
+label.lbl { color: #94a3b8; font-size: 13px; font-weight: 600; }
+select, input[type=text], input[type=number], textarea {
+  background: #1e293b; color: #e2e8f0;
+  border: 2px solid #334155; border-radius: 8px;
+  padding: 10px 16px; font-size: 16px; font-family: inherit; outline: none;
+}
+select { min-width: 130px; cursor: pointer; }
+/* Main */
+main { max-width: 900px; margin: 0 auto; padding: 20px 16px; display: flex; flex-direction: column; gap: 20px; }
+.card {
+  background: #111827; border: 1px solid #1e293b;
+  border-radius: 14px; padding: 20px; box-shadow: 0 4px 24px #0006;
+}
+.section-title {
+  font-size: 17px; font-weight: 800; color: #93c5fd;
+  margin-bottom: 16px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+}
+/* Search */
+#search-input {
+  width: 100%; border-radius: 10px; padding: 14px 18px;
+  font-size: 16px; margin-bottom: 16px;
+}
+/* Equip grid */
+.equip-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px;
+}
+.equip-btn {
+  background: #1e293b; border: 2px solid #334155; border-radius: 10px;
+  padding: 14px 12px; color: #cbd5e1; cursor: pointer; text-align: left;
+  transition: all .2s;
+}
+.equip-btn.active { background: #1e3a5f; border-color: #3b82f6; box-shadow: 0 0 12px #3b82f644; }
+.equip-id { font-size: 11px; color: #60a5fa; font-weight: 700; letter-spacing: 1px; }
+.equip-name { font-size: 15px; font-weight: 800; margin-top: 4px; color: #e2e8f0; }
+.equip-count { font-size: 11px; color: #64748b; margin-top: 4px; }
+/* Prev memo */
+.prev-memo-box {
+  background: #1a1a2e; border: 1px solid #6366f1;
+  border-radius: 8px; padding: 12px; margin-bottom: 16px;
+}
+.prev-memo-label { font-size: 12px; color: #818cf8; font-weight: 700; margin-bottom: 4px; }
+.prev-memo-text { font-size: 14px; color: #c7d2fe; }
+/* All OK btn */
+.all-ok-btn {
+  width: 100%; background: #052e16; color: #22c55e;
+  border: 2px solid #16a34a; border-radius: 10px;
+  padding: 16px; font-size: 16px; font-weight: 800;
+  cursor: pointer; margin-bottom: 16px; letter-spacing: 1px;
+}
+/* Item rows */
+.item-list { display: flex; flex-direction: column; gap: 10px; }
+.item-row {
+  background: #1e293b; border: 2px solid #334155;
+  border-radius: 10px; padding: 14px; transition: all .3s;
+}
+.item-row.error { border-color: #ef4444; background: #2d0a0a; }
+.item-name {
+  font-size: 16px; font-weight: 700; color: #e2e8f0;
+  margin-bottom: 10px; display: flex; align-items: center; gap: 6px;
+}
+.error-dot { color: #ef4444; font-size: 10px; }
+.btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+.status-btn {
+  background: #0f172a; color: #64748b;
+  border: 2px solid #334155; border-radius: 8px;
+  padding: 10px 14px; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center;
+  min-width: 60px; gap: 2px; transition: all .2s; font-weight: 700;
+  font-size: 14px;
+}
+.status-btn .icon { font-size: 18px; }
+/* Replace form */
+.replace-form {
+  margin-top: 12px; background: #0c1a2e;
+  border: 1px solid #2563eb; border-radius: 8px; padding: 12px;
+  display: none;
+}
+.replace-form.show { display: block; }
+.replace-title { font-size: 13px; color: #60a5fa; font-weight: 700; margin-bottom: 10px; }
+.replace-grid { display: flex; gap: 12px; flex-wrap: wrap; }
+.replace-grid > div { display: flex; flex-direction: column; gap: 4px; }
+.small-label { font-size: 12px; color: #94a3b8; }
+.small-input { padding: 10px 12px; font-size: 14px; border-radius: 6px; width: 160px; }
+.small-input.qty { width: 80px; }
+/* Error banner */
+.error-banner {
+  background: #2d0a0a; border: 1px solid #ef4444;
+  border-radius: 8px; padding: 12px; color: #f87171;
+  font-size: 14px; font-weight: 700; margin-top: 12px; display: none;
+}
+/* Presets */
+.preset-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.preset-btn {
+  background: #1e293b; color: #94a3b8;
+  border: 1px solid #334155; border-radius: 20px;
+  padding: 8px 14px; font-size: 13px; cursor: pointer;
+}
+textarea#memo { width: 100%; border-radius: 10px; padding: 12px 16px; resize: vertical; }
+/* Submit */
+.submit-btn {
+  width: 100%; margin-top: 20px;
+  background: linear-gradient(135deg, #1d4ed8, #7c3aed);
+  color: #fff; border: none; border-radius: 12px;
+  padding: 20px; font-size: 18px; font-weight: 900;
+  cursor: pointer; letter-spacing: 1px;
+  box-shadow: 0 4px 20px #3b82f644; transition: all .3s;
+}
+.submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+/* History */
+.history-list { display: flex; flex-direction: column; gap: 12px; }
+.history-card {
+  background: #1e293b; border: 1px solid #334155;
+  border-radius: 10px; padding: 14px;
+}
+.history-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
+.history-equip { font-size: 16px; font-weight: 800; }
+.history-id { font-size: 11px; color: #60a5fa; background: #1e3a5f; padding: 2px 6px; border-radius: 4px; }
+.history-op { font-size: 13px; color: #94a3b8; margin-left: auto; }
+.history-time { font-size: 12px; color: #64748b; margin-bottom: 8px; }
+.history-statuses { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
+.h-badge { font-size: 11px; padding: 2px 8px; border-radius: 4px; border: 1px solid; font-weight: 600; }
+.history-memo { font-size: 12px; color: #818cf8; margin-top: 4px; }
+/* ID badge */
+.equip-id-badge {
+  background: #1e3a5f; color: #60a5fa; border: 1px solid #3b82f6;
+  border-radius: 4px; padding: 2px 8px; font-size: 12px; font-weight: 600;
+}
+</style>
+</head>
+<body>
+
+<div id="toast"></div>
+
+<header>
+  <div class="header-inner">
+    <div>
+      <div class="app-title">⚙ 設備点検記録</div>
+      <div class="app-sub">Equipment Inspection System</div>
+    </div>
+    <div class="operator-box">
+      <label class="lbl">担当者</label>
+      <select id="operator-select" onchange="onOperatorChange(this.value)">
+        <option value="">-- 選択 --</option>
+      </select>
+    </div>
+  </div>
+</header>
+
+<main>
+  <!-- 設備選択 -->
+  <section class="card">
+    <div class="section-title">🔍 設備を選択</div>
+    <input type="text" id="search-input" placeholder="設備ID / 設備名で検索..." oninput="renderEquipGrid()">
+    <div class="equip-grid" id="equip-grid"></div>
+  </section>
+
+  <!-- 点検フォーム -->
+  <section class="card" id="inspection-form" style="display:none">
+    <div class="section-title" id="form-title"></div>
+    <div id="prev-memo-box" class="prev-memo-box" style="display:none">
+      <div class="prev-memo-label">📌 前回の申し送り事項</div>
+      <div class="prev-memo-text" id="prev-memo-text"></div>
+    </div>
+    <button class="all-ok-btn" onclick="setAllOk()">✓ 全項目を正常(OK)にする</button>
+    <div class="item-list" id="item-list"></div>
+    <div class="error-banner" id="error-banner"></div>
+    <div style="margin-top:20px">
+      <label class="lbl">📝 申し送り・メモ（次回担当者へ）</label>
+      <div class="preset-row" id="preset-row"></div>
+      <textarea id="memo" rows="3" placeholder="特記事項を入力..."></textarea>
+    </div>
+    <button class="submit-btn" id="submit-btn" onclick="handleSubmit()">🚀 点検完了・送信</button>
+  </section>
+
+  <!-- 履歴 -->
+  <section class="card" id="history-section" style="display:none">
+    <div class="section-title">📁 直近の点検履歴</div>
+    <div class="history-list" id="history-list"></div>
+  </section>
+</main>
+
+<script>
+// ============================================================
+// CONFIG — ここを書き換えるだけでカスタマイズできます
+// ============================================================
+const CONFIG = {
+  GAS_URL: "https://script.google.com/macros/s/AKfycbwsIz_kuYaE9Bgou0eRjlXy_L1T_rUZOKICNaggaK8ib44I2QfrzQqzInevVxThDkqSpQ/exec",
+  operators: ["田中", "佐藤", "鈴木", "山田", "伊藤", "渡辺"],
+  // items: { name:"項目名", unit:"単位" } の形式
+  // unit は交換時に使う単位。交換しない項目は unit:"－" にしてください
+  equipment: [
+    { id: "CMP-001", name: "コンプレッサー", items: [
+      { name:"ドレン排出",  unit:"式" },
+      { name:"圧力確認",    unit:"式" },
+      { name:"Vベルト張り", unit:"本" },
+      { name:"油量確認",    unit:"L"  },
+      { name:"異音・振動",  unit:"式" },
+    ]},
+    { id: "CMP-002", name: "コンプレッサー (予備)", items: [
+      { name:"ドレン排出",  unit:"式" },
+      { name:"圧力確認",    unit:"式" },
+      { name:"Vベルト張り", unit:"本" },
+      { name:"油量確認",    unit:"L"  },
+    ]},
+    { id: "LAT-001", name: "旋盤 #1", items: [
+      { name:"チップ摩耗確認", unit:"個" },
+      { name:"油量確認",       unit:"L"  },
+      { name:"摺動面清掃",     unit:"式" },
+      { name:"チャック動作",   unit:"式" },
+      { name:"切削油",         unit:"L"  },
+    ]},
+    { id: "LAT-002", name: "旋盤 #2", items: [
+      { name:"チップ摩耗確認", unit:"個" },
+      { name:"油量確認",       unit:"L"  },
+      { name:"摺動面清掃",     unit:"式" },
+      { name:"チャック動作",   unit:"式" },
+    ]},
+    { id: "MCN-001", name: "マシニングセンタ", items: [
+      { name:"工具長補正",     unit:"式" },
+      { name:"切削油濃度",     unit:"L"  },
+      { name:"チップマガジン", unit:"個" },
+      { name:"主軸油量",       unit:"L"  },
+      { name:"フィルター",     unit:"枚" },
+    ]},
+    { id: "HYD-001", name: "油圧ユニット", items: [
+      { name:"油量確認",       unit:"L"  },
+      { name:"油温確認",       unit:"式" },
+      { name:"フィルター差圧", unit:"枚" },
+      { name:"配管漏れ",       unit:"式" },
+      { name:"ポンプ異音",     unit:"式" },
+    ]},
+    { id: "CNV-001", name: "コンベア #1", items: [
+      { name:"ベルト張り",       unit:"本" },
+      { name:"ローラー摩耗",     unit:"個" },
+      { name:"駆動モーター温度", unit:"式" },
+      { name:"センサー動作",     unit:"式" },
+    ]},
+    { id: "WLD-001", name: "溶接機", items: [
+      { name:"トーチ先端", unit:"個" },
+      { name:"ガス残量",   unit:"缶" },
+      { name:"ケーブル被覆", unit:"式" },
+      { name:"電流電圧設定", unit:"式" },
+    ]},
+  ],
+  presetComments: ["グリスアップ実施","増し締め実施","フィルター清掃","オイル交換","ベルト張り調整","センサー清掃","エア漏れ確認","次回要確認"],
+
+  // 数量の単位リスト（参考用：equipment内のunitに直接書いてください）
+  // units: ["個", "本", "枚", "セット", "L", "kg", "m", "缶", "袋", "式"],
+
+};
+// ============================================================
+
+const STATUS = {
+  ok:      { label:"正常", color:"#22c55e", bg:"#052e16", border:"#16a34a", icon:"✓" },
+  ng:      { label:"異常", color:"#ef4444", bg:"#2d0a0a", border:"#dc2626", icon:"✕" },
+  replace: { label:"交換", color:"#3b82f6", bg:"#0c1a2e", border:"#2563eb", icon:"↺" },
+  clean:   { label:"清掃", color:"#eab308", bg:"#1a1500", border:"#ca8a04", icon:"✦" },
+};
+
+const STORAGE_KEY  = "fis_operator";
+const HISTORY_KEY  = "fis_history";
+
+let currentEquip = null;
+let checks = {};
+let partDetails = {};
+let history = [];
+
+// ── 初期化 ──────────────────────────────
+window.onload = () => {
+  // 担当者セレクト
+  const sel = document.getElementById("operator-select");
+  CONFIG.operators.forEach(o => {
+    const opt = document.createElement("option");
+    opt.value = opt.textContent = o;
+    sel.appendChild(opt);
+  });
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) sel.value = saved;
+
+  // 定型コメント
+  const pr = document.getElementById("preset-row");
+  CONFIG.presetComments.forEach(c => {
+    const btn = document.createElement("button");
+    btn.className = "preset-btn";
+    btn.textContent = c;
+    btn.onclick = () => {
+      const t = document.getElementById("memo");
+      t.value = t.value ? t.value + "、" + c : c;
+    };
+    pr.appendChild(btn);
+  });
+
+  // 履歴読み込み
+  try { history = JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]"); } catch { history = []; }
+  renderHistory();
+  renderEquipGrid();
+};
+
+function onOperatorChange(v) {
+  localStorage.setItem(STORAGE_KEY, v);
+}
+
+// ── 設備グリッド ──────────────────────────
+function renderEquipGrid() {
+  const q = document.getElementById("search-input").value.toLowerCase();
+  const grid = document.getElementById("equip-grid");
+  grid.innerHTML = "";
+  CONFIG.equipment
+    .filter(e => e.id.toLowerCase().includes(q) || e.name.includes(q))
+    .forEach(equip => {
+      const btn = document.createElement("button");
+      btn.className = "equip-btn" + (currentEquip?.id === equip.id ? " active" : "");
+      btn.innerHTML = `<div class="equip-id">${equip.id}</div>
+        <div class="equip-name">${equip.name}</div>
+        <div class="equip-count">${equip.items.length}項目</div>`;
+      btn.onclick = () => selectEquip(equip);
+      grid.appendChild(btn);
+    });
+}
+
+// ── 設備選択 ──────────────────────────────
+function selectEquip(equip) {
+  currentEquip = equip;
+  checks = {};
+  partDetails = {};
+  document.getElementById("memo").value = "";
+  document.getElementById("error-banner").style.display = "none";
+  document.getElementById("submit-btn").textContent = "🚀 点検完了・送信";
+  document.getElementById("submit-btn").style.background = "linear-gradient(135deg,#1d4ed8,#7c3aed)";
+
+  // タイトル
+  document.getElementById("form-title").innerHTML =
+    `📋 ${equip.name} <span class="equip-id-badge">${equip.id}</span>`;
+
+  // 前回メモ
+  const last = [...history].reverse().find(h => h.equipId === equip.id);
+  const pmBox = document.getElementById("prev-memo-box");
+  if (last?.memo) {
+    document.getElementById("prev-memo-text").textContent = last.memo;
+    pmBox.style.display = "block";
+  } else {
+    pmBox.style.display = "none";
+  }
+
+  // 点検項目
+  renderItems();
+  document.getElementById("inspection-form").style.display = "block";
+  document.getElementById("inspection-form").scrollIntoView({ behavior: "smooth" });
+  renderEquipGrid();
+}
+
+// ── 点検項目レンダリング ──────────────────
+function renderItems() {
+  const list = document.getElementById("item-list");
+  list.innerHTML = "";
+  currentEquip.items.forEach(itemObj => {
+    const name = itemObj.name;
+    const unit = itemObj.unit || "個";
+    const safeId = name.replace(/[^a-zA-Z0-9ぁ-んァ-ン一-龥]/g, "_");
+    const row = document.createElement("div");
+    row.className = "item-row";
+    row.id = "row-" + safeId;
+
+    // ボタン群
+    const btnGroup = Object.entries(STATUS).map(([key, s]) =>
+      `<button class="status-btn" id="btn-${safeId}-${key}" onclick="setCheck('${safeId}','${key}')">
+        <span class="icon">${s.icon}</span><span>${s.label}</span>
+       </button>`
+    ).join("");
+
+    row.innerHTML = `
+      <div class="item-name" id="name-${safeId}">
+        <span class="error-dot" id="dot-${safeId}" style="display:none">●</span>
+        ${name}
+      </div>
+      <div class="btn-group">${btnGroup}</div>
+      <div class="replace-form" id="replace-${safeId}">
+        <div class="replace-title">🔧 交換部品詳細</div>
+        <div class="replace-grid">
+          <div><span class="small-label">部品名</span>
+            <input class="small-input" type="text" placeholder="例: オイルフィルター"
+              oninput="updatePart('${safeId}','partName',this.value)"></div>
+          <div><span class="small-label">型番</span>
+            <input class="small-input" type="text" placeholder="例: OF-2023-A"
+              oninput="updatePart('${safeId}','partNo',this.value)"></div>
+          <div><span class="small-label">数量　<strong style="color:#60a5fa;font-size:14px">${unit}</strong></span>
+            <input class="small-input qty" type="number" placeholder="1" min="1"
+              oninput="updatePart('${safeId}','qty',this.value)">
+          </div>
+        </div>
+      </div>`;
+
+    // 単位をpartDetailsに事前セット
+    if (!partDetails[safeId]) partDetails[safeId] = {};
+    partDetails[safeId].unit = unit;
+    partDetails[safeId]._displayName = name;
+
+    list.appendChild(row);
+  });
+}
+
+function setCheck(item, status) {
+  checks[item] = status;
+  const s = STATUS[status];
+  const row = document.getElementById("row-" + item);
+  row.style.background = s.bg;
+  row.style.borderColor = s.border;
+
+  // ボタン強調
+  Object.keys(STATUS).forEach(k => {
+    const btn = document.getElementById(`btn-${item}-${k}`);
+    if (k === status) {
+      btn.style.background = STATUS[k].bg;
+      btn.style.color = STATUS[k].color;
+      btn.style.border = `2px solid ${STATUS[k].color}`;
+      btn.style.boxShadow = `0 0 8px ${STATUS[k].color}44`;
+    } else {
+      btn.style.background = "#0f172a";
+      btn.style.color = "#64748b";
+      btn.style.border = "2px solid #334155";
+      btn.style.boxShadow = "none";
+    }
+  });
+
+  // 交換フォーム
+  const rf = document.getElementById("replace-" + item);
+  rf.classList.toggle("show", status === "replace");
+
+
+  // エラー解除
+  document.getElementById("dot-" + item).style.display = "none";
+  row.classList.remove("error");
+}
+
+function setAllOk() {
+  currentEquip.items.forEach(itemObj => {
+    const safeId = itemObj.name.replace(/[^a-zA-Z0-9ぁ-んァ-ン一-龥]/g, "_");
+    setCheck(safeId, "ok");
+  });
+}
+
+function updatePart(item, field, value) {
+  if (!partDetails[item]) partDetails[item] = {};
+  partDetails[item][field] = value;
+}
+
+
+
+// ── 送信 ──────────────────────────────────
+async function handleSubmit() {
+  const operator = document.getElementById("operator-select").value;
+  if (!operator) { showToast("担当者を選択してください", "error"); return; }
+
+  const unchecked = currentEquip.items.filter(itemObj => {
+    const safeId = itemObj.name.replace(/[^a-zA-Z0-9ぁ-んァ-ン一-龥]/g, "_");
+    return !checks[safeId];
+  });
+  if (unchecked.length > 0) {
+    unchecked.forEach(itemObj => {
+      const safeId = itemObj.name.replace(/[^a-zA-Z0-9ぁ-んァ-ン一-龥]/g, "_");
+      document.getElementById("row-" + safeId).classList.add("error");
+      document.getElementById("dot-" + safeId).style.display = "inline";
+    });
+    const banner = document.getElementById("error-banner");
+    banner.textContent = "⚠ 未チェックの項目があります：" + unchecked.map(i=>i.name).join(" / ");
+    banner.style.display = "block";
+    return;
+  }
+
+  const btn = document.getElementById("submit-btn");
+  btn.disabled = true;
+  btn.textContent = "⏳ 送信中...";
+
+  // checksのキーをsafeIdから元の項目名に戻す
+  const namedChecks = {};
+  const namedParts = {};
+  currentEquip.items.forEach(itemObj => {
+    const safeId = itemObj.name.replace(/[^a-zA-Z0-9ぁ-んァ-ン一-龥]/g, "_");
+    if (checks[safeId]) namedChecks[itemObj.name] = checks[safeId];
+    if (partDetails[safeId] && Object.keys(partDetails[safeId]).length > 0) {
+      const pd = { ...partDetails[safeId] };
+      delete pd._displayName;
+      namedParts[itemObj.name] = pd;
+    }
+  });
+
+  const payload = {
+    timestamp: new Date().toLocaleString("ja-JP"),
+    operator,
+    equipId: currentEquip.id,
+    equipName: currentEquip.name,
+    checks: namedChecks,
+    partDetails: namedParts,
+    memo: document.getElementById("memo").value,
+  };
+
+  // ★ URLSearchParams POST — スタンドアロンHTMLなのでCORSエラーにならない
+  try {
+    const body = new URLSearchParams({ payload: JSON.stringify(payload) });
+    const res = await fetch(CONFIG.GAS_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: body.toString(),
+    });
+    const json = await res.json();
+    console.log("GAS response:", json);
+  } catch(err) {
+    console.error("送信エラー:", err);
+    showToast("送信エラー: " + err.message, "error");
+    btn.disabled = false;
+    btn.textContent = "🚀 点検完了・送信";
+    return;
+  }
+
+  // 履歴保存
+  history = [payload, ...history].slice(0, 5);
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+  renderHistory();
+
+  btn.textContent = "✅ 送信完了!";
+  btn.style.background = "linear-gradient(135deg,#16a34a,#15803d)";
+  showToast("送信完了 ✓", "success");
+
+  setTimeout(() => {
+    currentEquip = null;
+    document.getElementById("inspection-form").style.display = "none";
+    btn.disabled = false;
+    renderEquipGrid();
+  }, 2000);
+}
+
+// ── 履歴 ──────────────────────────────────
+function renderHistory() {
+  const sec = document.getElementById("history-section");
+  const list = document.getElementById("history-list");
+  if (!history.length) { sec.style.display = "none"; return; }
+  sec.style.display = "block";
+  list.innerHTML = "";
+  history.forEach(h => {
+    const card = document.createElement("div");
+    card.className = "history-card";
+    const badges = Object.entries(h.checks).map(([item, st]) => {
+      const s = STATUS[st];
+      return `<span class="h-badge" style="color:${s.color};border-color:${s.border};background:${s.bg}">${item}: ${s.label}</span>`;
+    }).join("");
+    card.innerHTML = `
+      <div class="history-top">
+        <span class="history-equip">${h.equipName}</span>
+        <span class="history-id">${h.equipId}</span>
+        <span class="history-op">👤 ${h.operator}</span>
+      </div>
+      <div class="history-time">🕐 ${h.timestamp}</div>
+      <div class="history-statuses">${badges}</div>
+      ${h.memo ? `<div class="history-memo">📌 ${h.memo}</div>` : ""}`;
+    list.appendChild(card);
+  });
+}
+
+// ── Toast ──────────────────────────────────
+function showToast(msg, type) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.style.display = "block";
+  t.style.background = type === "success" ? "#052e16" : "#2d0a0a";
+  t.style.borderColor = type === "success" ? "#22c55e" : "#ef4444";
+  t.style.color = type === "success" ? "#22c55e" : "#ef4444";
+  setTimeout(() => { t.style.display = "none"; }, 3000);
+}
+</script>
+</body>
+</html>
