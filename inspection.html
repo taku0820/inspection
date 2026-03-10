@@ -319,6 +319,27 @@ body.light .theme-btn { border-color: rgba(0,0,0,0.2); color: #1e293b; }
   border-radius:6px; padding:4px; font-size:11px;
   color:#a78bfa; cursor:pointer; font-weight:700;
 }
+/* 点検項目メンテナンス図ボタン */
+.manual-btn {
+  display:inline-flex; align-items:center; gap:4px;
+  margin-top:8px; background:transparent;
+  border:1px solid #7c3aed; border-radius:6px;
+  padding:5px 10px; font-size:12px; font-weight:700;
+  color:#a78bfa; cursor:pointer; transition:all .2s;
+}
+.manual-btn:hover { background:#1e1040; }
+body.light .manual-btn { border-color:#7c3aed; color:#6d28d9; }
+/* メンテナンス図モーダル */
+.manual-modal { background:var(--bg2); border-radius:16px; width:100%; max-width:860px; margin:auto; box-shadow:0 8px 40px #0008; }
+.manual-modal-header { background:var(--header-bg); border-radius:16px 16px 0 0; padding:16px 20px; display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+.manual-modal-title { font-size:15px; font-weight:900; color:#fff; }
+.manual-modal-body { padding:16px; max-height:78vh; overflow-y:auto; text-align:center; }
+.manual-modal-body img { max-width:100%; border-radius:8px; cursor:zoom-in; }
+.manual-modal-body img.zoomed { cursor:zoom-out; transform:scale(1.5); transform-origin:top center; }
+.manual-modal-body iframe { width:100%; height:70vh; border:none; border-radius:8px; }
+.manual-no-image { color:var(--text3); padding:30px; font-size:14px; }
+.pdf-fallback { margin-top:12px; }
+.pdf-fallback a { color:var(--blue); font-weight:700; font-size:14px; }
 /* 設備ボタンに履歴ボタン追加 */
 .equip-hist-btn {
   display: block; width: 100%; margin-top: 6px;
@@ -347,6 +368,17 @@ body.light .theme-btn { border-color: rgba(0,0,0,0.2); color: #1e293b; }
     </div>
   </div>
 </header>
+
+<!-- メンテナンス図モーダル -->
+<div class="modal-overlay" id="manual-modal">
+  <div class="manual-modal">
+    <div class="manual-modal-header">
+      <div class="manual-modal-title" id="manual-modal-title">📋 メンテナンス図</div>
+      <button class="modal-close" onclick="closeManualModal()">✕ 閉じる</button>
+    </div>
+    <div class="manual-modal-body" id="manual-modal-body"></div>
+  </div>
+</div>
 
 <!-- 構成図モーダル -->
 <div class="modal-overlay" id="diag-modal">
@@ -422,7 +454,7 @@ const CONFIG = {
   // unit は交換時に使う単位。交換しない項目は unit:"式" にしてください
   equipment: [
     { id: "CMP-001", name: "TP用 中圧 スクリューコンプレッサー(18.5kw)", diagrams: [
-      { title:"構成図", url:"https://taku0820.github.io/inspection/images/cmp001_1.jpg" },
+      { title:"構成図", url:"https://taku0820.github.io/inspection/manuals/cmp001-diagram.pdf" },
     ], items: [
       // 電動機
       { name:"モーター（異音・振動）",              unit:"式" },
@@ -432,26 +464,26 @@ const CONFIG = {
       { name:"オイル漏れ",                          unit:"式" },
       { name:"エア漏れ",                            unit:"式" },
       // 吸気・冷却装置
-      { name:"ダストフィルター（汚れ）",            unit:"枚" },
+      { name:"ダストフィルター（汚れ）",            unit:"枚", manual:{type:"image",url:"https://taku0820.github.io/inspection/images/cmp001-dust-filter.png"} },
       { name:"オイルクーラー・アフタークーラー",    unit:"式" },
-      { name:"シロッコファン（汚れ）",              unit:"式" },
+      { name:"シロッコファン（汚れ）",              unit:"式", manual:{type:"image",url:"https://taku0820.github.io/inspection/images/cmp001-sirocco-fan.png"} },
       { name:"ドライヤーコンデンサ（汚れ）",        unit:"式" },
-      { name:"エアクリーナーエレメント",            unit:"個" },
+      { name:"エアクリーナーエレメント",            unit:"個", manual:{type:"image",url:"https://taku0820.github.io/inspection/images/cmp001-air-filter.png"} },
       // 潤滑装置
       { name:"オイル 6000h交換",                    unit:"L",  parts:[
         { partName:"ロングライフHPオイル 20L",       partNo:"" },
       ]},
-      { name:"オイルフィルター 6000h交換",          unit:"個", parts:[
+      { name:"オイルフィルター 6000h交換",          unit:"個", manual:{type:"image",url:"https://taku0820.github.io/inspection/images/cmp001-oil-filter.png"}, parts:[
         { partName:"オイルフィルター",               partNo:"37438 09200" },
       ]},
-      { name:"オイルセパレータエレメント 6000h交換", unit:"個", parts:[
+      { name:"オイルセパレータエレメント 6000h交換", unit:"個", manual:{type:"pdf",url:"https://taku0820.github.io/inspection/manuals/cmp001-oil-separator.pdf"}, parts:[
         { partName:"オイルセパレータエレメント",     partNo:"34224 02801" },
         { partName:"O-リング",                       partNo:"03402 15110" },
       ]},
-      { name:"オイルリターン（詰まり）",             unit:"式" },
+      { name:"オイルリターン（詰まり）",             unit:"式", manual:{type:"image",url:"https://taku0820.github.io/inspection/images/cmp001-oil-separator-strainer.png"} },
     ]},
     { id: "CMP-002", name: "自動ベンダー用 スクリューコンプレッサー(22kw)", diagrams: [
-      { title:"構成図", url:"https://taku0820.github.io/inspection/images/cmp002_1.jpg" },
+      { title:"構成図", url:"https://taku0820.github.io/inspection/manuals/cmp002-diagram.pdf" },
     ], items: [
       // 電動機
       { name:"モーター（異音・振動）",              unit:"式" },
@@ -463,27 +495,27 @@ const CONFIG = {
         { partName:"セーフティバルブ",               partNo:"72 15100 0270 03" },
       ]},
       // 吸気・冷却装置
-      { name:"ダストフィルター（汚れ）",            unit:"枚" },
+      { name:"ダストフィルター（汚れ）",            unit:"枚", manual:{type:"pdf",url:"https://taku0820.github.io/inspection/manuals/cmp002-dust-filter.pdf"} },
       { name:"オイルクーラー・アフタークーラー",    unit:"式" },
-      { name:"シロッコファン（汚れ）",              unit:"式" },
+      { name:"シロッコファン（汚れ）",              unit:"式", manual:{type:"pdf",url:"https://taku0820.github.io/inspection/manuals/cmp002-cooler-fan.pdf"} },
       { name:"ドライヤーコンデンサ（汚れ）",        unit:"式" },
-      { name:"エアクリーナーエレメント",            unit:"個", parts:[
+      { name:"エアクリーナーエレメント",            unit:"個", manual:{type:"pdf",url:"https://taku0820.github.io/inspection/manuals/cmp002-air-cleaner.pdf"}, parts:[
         { partName:"エアクリーナエレメント",         partNo:"71 10116 3801 10" },
       ]},
       // 潤滑装置
-      { name:"オイル 6000h交換",                    unit:"L",  parts:[
+      { name:"オイル 6000h交換",                    unit:"L",  manual:{type:"pdf",url:"https://taku0820.github.io/inspection/manuals/cmp002-oil-change.pdf"}, parts:[
         { partName:"Z-6000オイル 20L",               partNo:"71 10044 8069 00" },
       ]},
-      { name:"オイルフィルター 6000h交換",          unit:"個", parts:[
+      { name:"オイルフィルター 6000h交換",          unit:"個", manual:{type:"pdf",url:"https://taku0820.github.io/inspection/manuals/cmp002-oil-filter.pdf"}, parts:[
         { partName:"オイルフィルター",               partNo:"71 12210 8074 10" },
       ]},
-      { name:"オイルセパレータエレメント 6000h交換", unit:"個", parts:[
+      { name:"オイルセパレータエレメント 6000h交換", unit:"個", manual:{type:"pdf",url:"https://taku0820.github.io/inspection/manuals/cmp002-oil-separator.pdf"}, parts:[
         { partName:"セパレータコンプリート",         partNo:"72 12210 0803 01" },
       ]},
-      { name:"オイルリターン（詰まり）",             unit:"式" },
+      { name:"オイルリターン（詰まり）",             unit:"式", manual:{type:"pdf",url:"https://taku0820.github.io/inspection/manuals/cmp002-oil-return.pdf"} },
     ]},
     { id: "CMP-003", name: "中央受電室 スクリューコンプレッサー(55kw)", diagrams: [
-      { title:"構成図", url:"https://taku0820.github.io/inspection/images/cmp003_1.jpg" },
+      { title:"構成図", url:"https://taku0820.github.io/inspection/manuals/cmp003-diagram.pdf" },
     ], items: [
       // 電動機
       { name:"モーター（異音・振動）",              unit:"式" },
@@ -493,26 +525,26 @@ const CONFIG = {
       { name:"オイル漏れ",                          unit:"式" },
       { name:"エア漏れ",                            unit:"式" },
       // 吸気・冷却装置
-      { name:"ダストフィルター（汚れ）",            unit:"枚" },
-      { name:"オイルクーラー・アフタークーラー",    unit:"式" },
-      { name:"シロッコファン（汚れ）",              unit:"式" },
+      { name:"ダストフィルター（汚れ）",            unit:"枚", manual:{type:"image",url:"https://taku0820.github.io/inspection/images/cmp003-dust-filter.png"} },
+      { name:"オイルクーラー・アフタークーラー",    unit:"式", manual:{type:"pdf",url:"https://taku0820.github.io/inspection/manuals/cmp003-cooler.pdf"} },
+      { name:"シロッコファン（汚れ）",              unit:"式", manual:{type:"pdf",url:"https://taku0820.github.io/inspection/manuals/cmp003-cooler.pdf"} },
       { name:"ドライヤーコンデンサ（汚れ）",        unit:"式" },
-      { name:"エアクリーナーエレメント",            unit:"個" },
+      { name:"エアクリーナーエレメント",            unit:"個", manual:{type:"image",url:"https://taku0820.github.io/inspection/images/cmp003-air-filter.png"} },
       // 潤滑装置
-      { name:"オイル 6000h交換",                    unit:"L",  parts:[
+      { name:"オイル 6000h交換",                    unit:"L",  manual:{type:"pdf",url:"https://taku0820.github.io/inspection/manuals/cmp003-oil-change.pdf"}, parts:[
         { partName:"ロングライフSPオイル 20L",       partNo:"" },
       ]},
-      { name:"オイルフィルター 6000h交換",          unit:"個", parts:[
+      { name:"オイルフィルター 6000h交換",          unit:"個", manual:{type:"image",url:"https://taku0820.github.io/inspection/images/cmp003-oil-filter.png"}, parts:[
         { partName:"オイルフィルター",               partNo:"37438 09700" },
       ]},
-      { name:"オイルセパレータエレメント 6000h交換", unit:"個", parts:[
+      { name:"オイルセパレータエレメント 6000h交換", unit:"個", manual:{type:"image",url:"https://taku0820.github.io/inspection/images/cmp003-oil-separator.png"}, parts:[
         { partName:"オイルセパレータエレメント",     partNo:"34224 03000" },
         { partName:"O-リング",                       partNo:"03402 15145" },
       ]},
-      { name:"オイルリターン（詰まり）",             unit:"式" },
+      { name:"オイルリターン（詰まり）",             unit:"式", manual:{type:"image",url:"https://taku0820.github.io/inspection/images/cmp003-oil-separator.png"} },
     ]},
     { id: "CMP-004", name: "東側機械室 スクリューコンプレッサー(22kw)", diagrams: [
-      { title:"構成図", url:"https://taku0820.github.io/inspection/images/cmp004_1.jpg" },
+      { title:"構成図", url:"https://taku0820.github.io/inspection/manuals/cmp004-diagram.pdf" },
     ], items: [
       // 電動機
       { name:"モーター（異音・振動）",              unit:"式" },
@@ -524,9 +556,9 @@ const CONFIG = {
         { partName:"セーフティバルブ",               partNo:"72 15100 0270 03" },
       ]},
       // 吸気・冷却装置
-      { name:"ダストフィルター（汚れ）",            unit:"枚" },
+      { name:"ダストフィルター（汚れ）",            unit:"枚", manual:{type:"pdf",url:"https://taku0820.github.io/inspection/manuals/cmp004-dust-filter.pdf"} },
       { name:"オイルクーラー・アフタークーラー",    unit:"式" },
-      { name:"シロッコファン（汚れ）",              unit:"式" },
+      { name:"シロッコファン（汚れ）",              unit:"式", manual:{type:"pdf",url:"https://taku0820.github.io/inspection/manuals/cmp004-cooler-fan.pdf"} },
       { name:"ドライヤーコンデンサ（汚れ）",        unit:"式" },
       { name:"エアクリーナーエレメント",            unit:"個", parts:[
         { partName:"エアクリーナエレメント",         partNo:"71 10116 3801 10" },
@@ -535,13 +567,13 @@ const CONFIG = {
       { name:"オイル 6000h交換",                    unit:"L",  parts:[
         { partName:"Z-6000オイル 20L",               partNo:"71 10044 8069 00" },
       ]},
-      { name:"オイルフィルター 6000h交換",          unit:"個", parts:[
+      { name:"オイルフィルター 6000h交換",          unit:"個", manual:{type:"image",url:"https://taku0820.github.io/inspection/images/cmp001-oil-filter.png"}, parts:[
         { partName:"オイルフィルター",               partNo:"71 12210 8074 10" },
       ]},
-      { name:"オイルセパレータエレメント 6000h交換", unit:"個", parts:[
+      { name:"オイルセパレータエレメント 6000h交換", unit:"個", manual:{type:"pdf",url:"https://taku0820.github.io/inspection/manuals/cmp001-oil-separator.pdf"}, parts:[
         { partName:"セパレータコンプリート",         partNo:"72 12210 0803 01" },
       ]},
-      { name:"オイルリターン（詰まり）",             unit:"式" },
+      { name:"オイルリターン（詰まり）",             unit:"式", manual:{type:"pdf",url:"https://taku0820.github.io/inspection/manuals/cmp004-oil-return.pdf"} },
     ]},
         { id: "PS56", name: "プレス機 PS56", items: [
       // 安全装置
@@ -919,10 +951,51 @@ function clearEquipHistory() {
   closeHistModal();
   showToast("履歴を削除しました", "success");
 }
+// ── メンテナンス図モーダル ──────────────────
+function openManualModal(safeId) {
+  if (!currentEquip) return;
+  const itemObj = currentEquip.items.find(i =>
+    i.name.replace(/[^a-zA-Z0-9ぁ-んァ-ン一-龥]/g, "_") === safeId
+  );
+  if (!itemObj || !itemObj.manual) return;
+  const m = itemObj.manual;
+  document.getElementById("manual-modal-title").textContent = "📋 " + itemObj.name;
+  const body = document.getElementById("manual-modal-body");
+  body.innerHTML = '<div class="manual-no-image">📷 読み込み中...</div>';
+  document.getElementById("manual-modal").classList.add("open");
+
+  if (m.type === "image") {
+    const img = new Image();
+    img.onload = () => {
+      body.innerHTML = "";
+      img.style.maxWidth = "100%";
+      img.onclick = () => img.classList.toggle("zoomed");
+      body.appendChild(img);
+    };
+    img.onerror = () => {
+      body.innerHTML = '<div class="manual-no-image">⚠ 画像を読み込めませんでした<br><small>' + m.url + '</small></div>';
+    };
+    img.src = m.url;
+  } else if (m.type === "pdf") {
+    // iframeで試みる（スマホはフォールバックリンクも表示）
+    body.innerHTML =
+      '<iframe src="' + m.url + '" title="' + itemObj.name + '"></iframe>' +
+      '<div class="pdf-fallback">スマホでPDFが表示されない場合は → <a href="' + m.url + '" target="_blank">別タブで開く</a></div>';
+  } else {
+    body.innerHTML = '<div class="manual-no-image">⚠ 対応していない形式です</div>';
+  }
+}
+
+function closeManualModal() {
+  document.getElementById("manual-modal").classList.remove("open");
+  document.getElementById("manual-modal-body").innerHTML = "";
+}
+
 // モーダル外クリックで閉じる
 document.addEventListener("click", e => {
   if (e.target.id === "hist-modal") closeHistModal();
   if (e.target.id === "diag-modal") closeDiagModal();
+  if (e.target.id === "manual-modal") closeManualModal();
 });
 
 window.onload = () => {
@@ -1050,6 +1123,7 @@ function renderItems() {
         <span class="item-note-label">📝 備考・メモ</span>
         <textarea id="note-${safeId}" rows="2" placeholder="気づいた点・数値・状態など..."
           oninput="updateNote('${safeId}', this.value)"></textarea>
+        ${itemObj.manual ? `<button class="manual-btn" onclick="openManualModal('${safeId}')">📋 メンテナンス図</button>` : ''}
       </div>
       <div class="replace-form" id="replace-${safeId}">
         <div class="replace-title">🔧 交換部品詳細</div>
