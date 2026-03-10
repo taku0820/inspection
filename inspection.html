@@ -5,11 +5,64 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>設備点検記録</title>
 <style>
+/* ── CSS変数（ダークモード） ── */
+:root {
+  --bg:        #0a0a0f;
+  --bg2:       #111827;
+  --bg3:       #1e293b;
+  --bg4:       #0f172a;
+  --border:    #334155;
+  --border2:   #1e293b;
+  --text:      #e2e8f0;
+  --text2:     #94a3b8;
+  --text3:     #64748b;
+  --blue:      #60a5fa;
+  --blue2:     #93c5fd;
+  --header-bg: linear-gradient(135deg,#111827 0%,#1e1b4b 100%);
+  --card-shadow: 0 4px 24px #0006;
+  --input-bg:  #1e293b;
+  --prev-bg:   #1a1a2e;
+  --prev-border:#6366f1;
+  --prev-label:#818cf8;
+  --prev-text: #c7d2fe;
+  --replace-bg:#0c1a2e;
+  --note-bg:   #0f172a;
+  --note-color:#94a3b8;
+  --preset-bg: #1e293b;
+  --history-bg:#1e293b;
+}
+/* ── ライトモード変数 ── */
+body.light {
+  --bg:        #f1f5f9;
+  --bg2:       #ffffff;
+  --bg3:       #e2e8f0;
+  --bg4:       #f8fafc;
+  --border:    #cbd5e1;
+  --border2:   #e2e8f0;
+  --text:      #1e293b;
+  --text2:     #475569;
+  --text3:     #94a3b8;
+  --blue:      #2563eb;
+  --blue2:     #1d4ed8;
+  --header-bg: linear-gradient(135deg,#1e40af 0%,#4338ca 100%);
+  --card-shadow: 0 2px 12px #0001;
+  --input-bg:  #ffffff;
+  --prev-bg:   #ede9fe;
+  --prev-border:#6366f1;
+  --prev-label:#4f46e5;
+  --prev-text: #3730a3;
+  --replace-bg:#eff6ff;
+  --note-bg:   #f8fafc;
+  --note-color:#475569;
+  --preset-bg: #f1f5f9;
+  --history-bg:#f8fafc;
+}
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-  background: #0a0a0f; color: #e2e8f0;
+  background: var(--bg); color: var(--text);
   font-family: 'Noto Sans JP', 'Segoe UI', sans-serif;
   min-height: 100vh; padding-bottom: 60px;
+  transition: background .3s, color .3s;
 }
 /* Toast */
 #toast {
@@ -19,32 +72,32 @@ body {
 }
 /* Header */
 header {
-  background: linear-gradient(135deg, #111827 0%, #1e1b4b 100%);
-  border-bottom: 2px solid #334155;
+  background: var(--header-bg);
+  border-bottom: 2px solid var(--border);
   padding: 16px 20px; position: sticky; top: 0; z-index: 100;
 }
 .header-inner {
   max-width: 900px; margin: 0 auto;
   display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
 }
-.app-title { font-size: 22px; font-weight: 900; color: #60a5fa; letter-spacing: 1px; }
-.app-sub { font-size: 12px; color: #64748b; letter-spacing: 2px; margin-top: 2px; }
+.app-title { font-size: 22px; font-weight: 900; color: var(--blue2); letter-spacing: 1px; }
+.app-sub { font-size: 12px; color: var(--text3); letter-spacing: 2px; margin-top: 2px; }
 .operator-box { display: flex; align-items: center; gap: 10px; }
-label.lbl { color: #94a3b8; font-size: 13px; font-weight: 600; }
+label.lbl { color: var(--text2); font-size: 13px; font-weight: 600; }
 select, input[type=text], input[type=number], textarea {
-  background: #1e293b; color: #e2e8f0;
-  border: 2px solid #334155; border-radius: 8px;
+  background: var(--input-bg); color: var(--text);
+  border: 2px solid var(--border); border-radius: 8px;
   padding: 10px 16px; font-size: 16px; font-family: inherit; outline: none;
 }
 select { min-width: 130px; cursor: pointer; }
 /* Main */
 main { max-width: 900px; margin: 0 auto; padding: 20px 16px; display: flex; flex-direction: column; gap: 20px; }
 .card {
-  background: #111827; border: 1px solid #1e293b;
-  border-radius: 14px; padding: 20px; box-shadow: 0 4px 24px #0006;
+  background: var(--bg2); border: 1px solid var(--border2);
+  border-radius: 14px; padding: 20px; box-shadow: var(--card-shadow);
 }
 .section-title {
-  font-size: 17px; font-weight: 800; color: #93c5fd;
+  font-size: 17px; font-weight: 800; color: var(--blue);
   margin-bottom: 16px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
 }
 /* Search */
@@ -57,21 +110,21 @@ main { max-width: 900px; margin: 0 auto; padding: 20px 16px; display: flex; flex
   display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px;
 }
 .equip-btn {
-  background: #1e293b; border: 2px solid #334155; border-radius: 10px;
-  padding: 14px 12px; color: #cbd5e1; cursor: pointer; text-align: left;
+  background: var(--bg3); border: 2px solid var(--border); border-radius: 10px;
+  padding: 14px 12px; color: var(--text); cursor: pointer; text-align: left;
   transition: all .2s;
 }
 .equip-btn.active { background: #1e3a5f; border-color: #3b82f6; box-shadow: 0 0 12px #3b82f644; }
-.equip-id { font-size: 11px; color: #60a5fa; font-weight: 700; letter-spacing: 1px; }
-.equip-name { font-size: 15px; font-weight: 800; margin-top: 4px; color: #e2e8f0; }
-.equip-count { font-size: 11px; color: #64748b; margin-top: 4px; }
+.equip-id { font-size: 11px; color: var(--blue); font-weight: 700; letter-spacing: 1px; }
+.equip-name { font-size: 15px; font-weight: 800; margin-top: 4px; color: var(--text); }
+.equip-count { font-size: 11px; color: var(--text3); margin-top: 4px; }
 /* Prev memo */
 .prev-memo-box {
-  background: #1a1a2e; border: 1px solid #6366f1;
+  background: var(--prev-bg); border: 1px solid var(--prev-border);
   border-radius: 8px; padding: 12px; margin-bottom: 16px;
 }
-.prev-memo-label { font-size: 12px; color: #818cf8; font-weight: 700; margin-bottom: 4px; }
-.prev-memo-text { font-size: 14px; color: #c7d2fe; }
+.prev-memo-label { font-size: 12px; color: var(--prev-label); font-weight: 700; margin-bottom: 4px; }
+.prev-memo-text { font-size: 14px; color: var(--prev-text); }
 /* All OK btn */
 .all-ok-btn {
   width: 100%; background: #052e16; color: #22c55e;
@@ -82,19 +135,19 @@ main { max-width: 900px; margin: 0 auto; padding: 20px 16px; display: flex; flex
 /* Item rows */
 .item-list { display: flex; flex-direction: column; gap: 10px; }
 .item-row {
-  background: #1e293b; border: 2px solid #334155;
+  background: var(--bg3); border: 2px solid var(--border);
   border-radius: 10px; padding: 14px; transition: all .3s;
 }
 .item-row.error { border-color: #ef4444; background: #2d0a0a; }
 .item-name {
-  font-size: 16px; font-weight: 700; color: #e2e8f0;
+  font-size: 16px; font-weight: 700; color: var(--text);
   margin-bottom: 10px; display: flex; align-items: center; gap: 6px;
 }
 .error-dot { color: #ef4444; font-size: 10px; }
 .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
 .status-btn {
-  background: #0f172a; color: #64748b;
-  border: 2px solid #334155; border-radius: 8px;
+  background: var(--bg4); color: var(--text3);
+  border: 2px solid var(--border); border-radius: 8px;
   padding: 10px 14px; cursor: pointer;
   display: flex; flex-direction: column; align-items: center;
   min-width: 60px; gap: 2px; transition: all .2s; font-weight: 700;
@@ -103,15 +156,15 @@ main { max-width: 900px; margin: 0 auto; padding: 20px 16px; display: flex; flex
 .status-btn .icon { font-size: 18px; }
 /* Replace form */
 .replace-form {
-  margin-top: 12px; background: #0c1a2e;
-  border: 1px solid #2563eb; border-radius: 8px; padding: 12px;
+  margin-top: 12px; background: var(--replace-bg);
+  border: 1px solid var(--blue); border-radius: 8px; padding: 12px;
   display: none;
 }
 .replace-form.show { display: block; }
 .replace-title { font-size: 13px; color: #60a5fa; font-weight: 700; margin-bottom: 10px; }
 /* 複数部品エントリ */
 .part-entry {
-  background: #0f172a; border: 1px solid #2563eb;
+  background: var(--bg4); border: 1px solid var(--blue);
   border-radius: 8px; padding: 10px 12px; margin-bottom: 8px;
   position: relative;
 }
@@ -128,7 +181,7 @@ main { max-width: 900px; margin: 0 auto; padding: 20px 16px; display: flex; flex
 }
 .replace-grid { display: flex; gap: 12px; flex-wrap: wrap; }
 .replace-grid > div { display: flex; flex-direction: column; gap: 4px; }
-.small-label { font-size: 12px; color: #94a3b8; }
+.small-label { font-size: 12px; color: var(--text2); }
 .small-input { padding: 10px 12px; font-size: 14px; border-radius: 6px; width: 160px; }
 .small-input.qty { width: 80px; }
 /* Error banner */
@@ -140,8 +193,8 @@ main { max-width: 900px; margin: 0 auto; padding: 20px 16px; display: flex; flex
 /* Presets */
 .preset-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
 .preset-btn {
-  background: #1e293b; color: #94a3b8;
-  border: 1px solid #334155; border-radius: 20px;
+  background: var(--preset-bg); color: var(--text2);
+  border: 1px solid var(--border); border-radius: 20px;
   padding: 8px 14px; font-size: 13px; cursor: pointer;
 }
 textarea#memo { width: 100%; border-radius: 10px; padding: 12px 16px; resize: vertical; }
@@ -158,14 +211,14 @@ textarea#memo { width: 100%; border-radius: 10px; padding: 12px 16px; resize: ve
 /* History */
 .history-list { display: flex; flex-direction: column; gap: 12px; }
 .history-card {
-  background: #1e293b; border: 1px solid #334155;
+  background: var(--history-bg); border: 1px solid var(--border);
   border-radius: 10px; padding: 14px;
 }
 .history-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
 .history-equip { font-size: 16px; font-weight: 800; }
 .history-id { font-size: 11px; color: #60a5fa; background: #1e3a5f; padding: 2px 6px; border-radius: 4px; }
-.history-op { font-size: 13px; color: #94a3b8; margin-left: auto; }
-.history-time { font-size: 12px; color: #64748b; margin-bottom: 8px; }
+.history-op { font-size: 13px; color: var(--text2); margin-left: auto; }
+.history-time { font-size: 12px; color: var(--text3); margin-bottom: 8px; }
 .history-statuses { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
 .h-badge { font-size: 11px; padding: 2px 8px; border-radius: 4px; border: 1px solid; font-weight: 600; }
 .history-memo { font-size: 12px; color: #818cf8; margin-top: 4px; }
@@ -183,7 +236,7 @@ textarea#memo { width: 100%; border-radius: 10px; padding: 12px 16px; resize: ve
 .item-note textarea {
   width: 100%; border-radius: 6px; padding: 8px 12px;
   font-size: 14px; resize: none; min-height: 52px;
-  border: 1px solid #334155; background: #0f172a; color: #94a3b8;
+  border: 1px solid var(--border); background: var(--note-bg); color: var(--note-color);
   transition: border-color .2s, color .2s;
   font-family: inherit;
 }
@@ -191,8 +244,70 @@ textarea#memo { width: 100%; border-radius: 10px; padding: 12px 16px; resize: ve
   border-color: #60a5fa; color: #e2e8f0; outline: none;
 }
 .item-note-label {
-  font-size: 11px; color: #475569; margin-bottom: 5px; display: block;
+  font-size: 11px; color: var(--text2); margin-bottom: 5px; display: block;
   letter-spacing: 0.5px;
+}
+
+/* ── テーマ切替ボタン ── */
+.theme-btn {
+  background: transparent; border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 20px; padding: 6px 14px; color: #fff;
+  font-size: 13px; cursor: pointer; font-weight: 700;
+  transition: all .2s;
+}
+body.light .theme-btn { border-color: rgba(0,0,0,0.2); color: #1e293b; }
+/* ── 履歴モーダル ── */
+.modal-overlay {
+  display: none; position: fixed; inset: 0; z-index: 1000;
+  background: rgba(0,0,0,0.7); align-items: flex-start; justify-content: center;
+  padding: 20px 12px; overflow-y: auto;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--bg2); border-radius: 16px;
+  width: 100%; max-width: 720px;
+  box-shadow: 0 8px 40px #0008;
+  margin: auto;
+}
+.modal-header {
+  background: var(--header-bg); border-radius: 16px 16px 0 0;
+  padding: 18px 20px; display: flex; align-items: center; justify-content: space-between;
+}
+.modal-title { font-size: 17px; font-weight: 900; color: #fff; }
+.modal-close {
+  background: rgba(255,255,255,0.15); border: none; color: #fff;
+  border-radius: 8px; padding: 6px 14px; font-size: 16px; cursor: pointer; font-weight: 700;
+}
+.modal-body { padding: 20px; max-height: 70vh; overflow-y: auto; }
+.modal-equip-select {
+  width: 100%; margin-bottom: 16px; border-radius: 10px; font-size: 16px;
+  background: var(--input-bg); color: var(--text); border: 2px solid var(--border);
+  padding: 12px 16px;
+}
+.mhist-card {
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px; margin-bottom: 12px;
+}
+.mhist-header { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+.mhist-time { font-size: 13px; color: var(--text3); }
+.mhist-op { font-size: 13px; color: var(--text2); margin-left: auto; }
+.mhist-items { display: flex; flex-direction: column; gap: 6px; }
+.mhist-item { display: flex; gap: 8px; font-size: 14px; flex-wrap: wrap; align-items: flex-start; }
+.mhist-item-name { color: var(--text2); min-width: 160px; }
+.mhist-badge {
+  font-size: 12px; padding: 2px 8px; border-radius: 4px;
+  border: 1px solid; font-weight: 700; white-space: nowrap;
+}
+.mhist-note { font-size: 12px; color: var(--text3); font-style: italic; }
+.mhist-parts { font-size: 12px; color: #60a5fa; margin-top: 2px; }
+.mhist-memo { font-size: 13px; color: var(--prev-label); margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border); }
+.no-history { text-align: center; color: var(--text3); padding: 30px; }
+/* 設備ボタンに履歴ボタン追加 */
+.equip-hist-btn {
+  display: block; width: 100%; margin-top: 6px;
+  background: transparent; border: 1px solid var(--border);
+  border-radius: 6px; padding: 4px; font-size: 11px;
+  color: var(--blue); cursor: pointer; font-weight: 700;
 }
 </style>
 </head>
@@ -207,6 +322,7 @@ textarea#memo { width: 100%; border-radius: 10px; padding: 12px 16px; resize: ve
       <div class="app-sub">Equipment Inspection System</div>
     </div>
     <div class="operator-box">
+      <button class="theme-btn" id="theme-btn" onclick="toggleTheme()">☀ ライト</button>
       <label class="lbl">担当者</label>
       <select id="operator-select" onchange="onOperatorChange(this.value)">
         <option value="">-- 選択 --</option>
@@ -214,6 +330,19 @@ textarea#memo { width: 100%; border-radius: 10px; padding: 12px 16px; resize: ve
     </div>
   </div>
 </header>
+
+<!-- 履歴モーダル -->
+<div class="modal-overlay" id="hist-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="hist-modal-title">📁 点検履歴</div>
+      <button class="modal-close" onclick="closeHistModal()">✕ 閉じる</button>
+    </div>
+    <div class="modal-body">
+      <div id="hist-modal-body"></div>
+    </div>
+  </div>
+</div>
 
 <main>
   <!-- 設備選択 -->
@@ -594,7 +723,82 @@ let partDetails = {};
 let history = [];
 
 // ── 初期化 ──────────────────────────────
+// ── テーマ切替 ──────────────────────────────
+const THEME_KEY = "fis_theme";
+function toggleTheme() {
+  const isLight = document.body.classList.toggle("light");
+  localStorage.setItem(THEME_KEY, isLight ? "light" : "dark");
+  document.getElementById("theme-btn").textContent = isLight ? "🌙 ダーク" : "☀ ライト";
+}
+function applyTheme() {
+  const theme = localStorage.getItem(THEME_KEY) || "dark";
+  if (theme === "light") {
+    document.body.classList.add("light");
+    document.getElementById("theme-btn").textContent = "🌙 ダーク";
+  }
+}
+
+// ── 設備別履歴モーダル ────────────────────────
+function openHistModal(equipId) {
+  const equip = CONFIG.equipment.find(e => e.id === equipId);
+  if (!equip) return;
+  const equipHistory = history.filter(h => h.equipId === equipId).slice().reverse();
+  document.getElementById("hist-modal-title").textContent = "📁 " + equip.name + " — 点検履歴";
+
+  const body = document.getElementById("hist-modal-body");
+  if (equipHistory.length === 0) {
+    body.innerHTML = '<div class="no-history">履歴がありません</div>';
+  } else {
+    body.innerHTML = equipHistory.map(h => {
+      const itemRows = Object.entries(h.checks).map(([item, st]) => {
+        const s = STATUS[st];
+        const note = (h.itemNotes && h.itemNotes[item]) ? `<span class="mhist-note">📝 ${h.itemNotes[item]}</span>` : "";
+        const parts = (h.partDetails && h.partDetails[item]) ? buildPartsText(h.partDetails[item]) : "";
+        return `<div class="mhist-item">
+          <span class="mhist-item-name">${item}</span>
+          <span class="mhist-badge" style="color:${s.color};border-color:${s.border};background:${s.bg}">${s.icon} ${s.label}</span>
+          ${note}
+          ${parts ? `<span class="mhist-parts">🔧 ${parts}</span>` : ""}
+        </div>`;
+      }).join("");
+      const memo = h.memo ? `<div class="mhist-memo">📌 ${h.memo}</div>` : "";
+      return `<div class="mhist-card">
+        <div class="mhist-header">
+          <span class="mhist-time">🕐 ${h.timestamp}</span>
+          <span class="mhist-op">👤 ${h.operator}</span>
+        </div>
+        <div class="mhist-items">${itemRows}</div>
+        ${memo}
+      </div>`;
+    }).join("");
+  }
+  document.getElementById("hist-modal").classList.add("open");
+}
+
+function buildPartsText(detail) {
+  if (!detail) return "";
+  const unit = detail.unit || "個";
+  if (detail.entries && detail.entries.length > 0) {
+    return detail.entries.filter(Boolean).map(e =>
+      (e.partName || "") + (e.partNo ? "／" + e.partNo : "") + " ×" + (e.qty || 1) + unit
+    ).join("、");
+  }
+  if (detail.partName || detail.partNo) {
+    return (detail.partName || "") + (detail.partNo ? "／" + detail.partNo : "") + " ×" + (detail.qty || 1) + unit;
+  }
+  return "";
+}
+
+function closeHistModal() {
+  document.getElementById("hist-modal").classList.remove("open");
+}
+// モーダル外クリックで閉じる
+document.addEventListener("click", e => {
+  if (e.target.id === "hist-modal") closeHistModal();
+});
+
 window.onload = () => {
+  applyTheme();
   // 担当者セレクト
   const sel = document.getElementById("operator-select");
   CONFIG.operators.forEach(o => {
@@ -638,9 +842,11 @@ function renderEquipGrid() {
     .forEach(equip => {
       const btn = document.createElement("button");
       btn.className = "equip-btn" + (currentEquip?.id === equip.id ? " active" : "");
+      const equipHistory = history.filter(h => h.equipId === equip.id);
       btn.innerHTML = `<div class="equip-id">${equip.id}</div>
         <div class="equip-name">${equip.name}</div>
-        <div class="equip-count">${equip.items.length}項目</div>`;
+        <div class="equip-count">${equip.items.length}項目${equipHistory.length > 0 ? ' · 履歴' + equipHistory.length + '件' : ''}</div>
+        ${equipHistory.length > 0 ? `<button class="equip-hist-btn" onclick="event.stopPropagation();openHistModal('${equip.id}')">📁 履歴を見る</button>` : ''}`;
       btn.onclick = () => selectEquip(equip);
       grid.appendChild(btn);
     });
