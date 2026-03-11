@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>点検記録 ダッシュボード</title>
+<style>
+:root {
+  --bg: #0f172a;
+  --surface: #1e293b;
+  --surface2: #273344;
+  --border: #334155;
+  --text: #e2e8f0;
+  --text2: #94a3b8;
+  --ok: #22c55e;
+  --ng: #ef4444;
+  --replace: #3b82f6;
+  --clean: #a78bfa;
+  --accent: #38bdf8;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'Hiragino Sans', 'Meiryo', sans-serif; min-height: 100vh; }
+
+/* ── ヘッダー ── */
+.header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 20px;
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  position: sticky; top: 0; z-index: 100;
+}
+.header h1 { font-size: 18px; color: var(--accent); font-weight: 700; }
+.header-controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-left: auto; }
+select, input[type=date] {
+  background: var(--surface2); border: 1px solid var(--border);
+  color: var(--text); border-radius: 8px; padding: 7px 12px; font-size: 13px;
+}
+.btn-reload {
+  background: var(--accent); color: #0f172a; border: none;
+  border-radius: 8px; padding: 8px 16px; font-size: 13px; font-weight: 700;
+  cursor: pointer; display: flex; align-items: center; gap: 6px;
+}
+.btn-reload:hover { opacity: .85; }
+.btn-reload.loading { opacity: .6; pointer-events: none; }
+
+/* ── フィルターバー ── */
+.filter-bar {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: 10px 20px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+}
+.filter-chip {
+  padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
+  border: 2px solid transparent; cursor: pointer; transition: all .15s;
+}
+.filter-chip.all    { border-color: var(--text2); color: var(--text2); }
+.filter-chip.ng     { border-color: var(--ng);    color: var(--ng); }
+.filter-chip.replace{ border-color: var(--replace);color: var(--replace); }
+.filter-chip.active { color: #fff !important; }
+.filter-chip.all.active    { background: var(--text2); }
+.filter-chip.ng.active     { background: var(--ng); }
+.filter-chip.replace.active{ background: var(--replace); }
+.filter-label { font-size: 12px; color: var(--text2); margin-right: 4px; }
+
+/* ── ステータスサマリー ── */
+.summary-bar {
+  display: flex; gap: 12px; padding: 16px 20px; flex-wrap: wrap;
+}
+.summary-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 14px 20px; flex: 1; min-width: 140px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.summary-card .label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: .05em; }
+.summary-card .value { font-size: 28px; font-weight: 800; }
+.summary-card.total .value { color: var(--accent); }
+.summary-card.ng    .value { color: var(--ng); }
+.summary-card.rep   .value { color: var(--replace); }
+.summary-card.ok    .value { color: var(--ok); }
+
+/* ── メインコンテンツ ── */
+.main { padding: 0 20px 40px; }
+
+/* ── 設備セクション ── */
+.equip-section { margin-bottom: 32px; }
+.equip-title {
+  font-size: 15px; font-weight: 700; color: var(--accent);
+  padding: 10px 0 8px; border-bottom: 1px solid var(--border);
+  margin-bottom: 12px; display: flex; align-items: center; gap: 10px;
+}
+.equip-badge {
+  font-size: 11px; background: var(--surface2);
+  border-radius: 6px; padding: 2px 8px; color: var(--text2);
+}
+
+/* ── 記録カード ── */
+.records-grid {
+  display: flex; flex-direction: column; gap: 8px;
+}
+.record-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; overflow: hidden; transition: border-color .15s;
+}
+.record-card:hover { border-color: var(--accent); }
+.record-card.has-ng     { border-left: 4px solid var(--ng); }
+.record-card.has-replace{ border-left: 4px solid var(--replace); }
+.record-card.all-ok     { border-left: 4px solid var(--ok); }
+
+.record-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px; cursor: pointer; user-select: none;
+}
+.record-time {
+  font-size: 13px; font-weight: 700; color: var(--text); white-space: nowrap;
+}
+.record-operator {
+  font-size: 12px; color: var(--text2); white-space: nowrap;
+}
+.record-status-row {
+  display: flex; gap: 6px; flex-wrap: wrap; flex: 1;
+}
+.status-pill {
+  font-size: 11px; font-weight: 700; border-radius: 6px;
+  padding: 2px 8px; white-space: nowrap;
+}
+.status-pill.ok      { background: #14532d44; color: var(--ok); }
+.status-pill.ng      { background: #7f1d1d44; color: var(--ng); }
+.status-pill.replace { background: #1e3a5f44; color: var(--replace); }
+.status-pill.clean   { background: #3b0764aa; color: var(--clean); }
+
+.toggle-icon { color: var(--text2); font-size: 12px; margin-left: auto; transition: transform .2s; }
+.record-card.expanded .toggle-icon { transform: rotate(180deg); }
+
+/* 詳細展開エリア */
+.record-detail {
+  display: none; padding: 0 16px 16px;
+}
+.record-card.expanded .record-detail { display: block; }
+.detail-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 8px; margin-top: 8px;
+}
+.detail-item {
+  background: var(--surface2); border-radius: 8px; padding: 10px 12px;
+  border: 1px solid var(--border);
+}
+.detail-item.is-ng      { border-color: var(--ng); background: #7f1d1d22; }
+.detail-item.is-replace { border-color: var(--replace); background: #1e3a5f22; }
+.detail-item.is-clean   { border-color: var(--clean); background: #3b076422; }
+.detail-name { font-size: 12px; color: var(--text2); margin-bottom: 4px; }
+.detail-result {
+  font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px;
+}
+.detail-result.ok      { color: var(--ok); }
+.detail-result.ng      { color: var(--ng); }
+.detail-result.replace { color: var(--replace); }
+.detail-result.clean   { color: var(--clean); }
+.detail-note { font-size: 11px; color: var(--text2); margin-top: 4px; }
+.detail-parts { font-size: 11px; color: var(--replace); margin-top: 4px; }
+.detail-memo {
+  margin-top: 10px; padding: 8px 12px;
+  background: var(--surface2); border-radius: 8px;
+  font-size: 12px; color: var(--text2); border-left: 3px solid var(--accent);
+}
+
+/* ── ローディング・空状態 ── */
+.loading-state, .empty-state {
+  text-align: center; padding: 60px 20px; color: var(--text2);
+}
+.loading-spinner {
+  width: 40px; height: 40px; border: 3px solid var(--border);
+  border-top-color: var(--accent); border-radius: 50%;
+  animation: spin 1s linear infinite; margin: 0 auto 16px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── エラー表示 ── */
+.error-state {
+  background: #7f1d1d22; border: 1px solid var(--ng);
+  border-radius: 12px; padding: 20px; margin: 20px;
+  color: var(--ng); font-size: 13px; text-align: center;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🏭 点検記録 ダッシュボード</h1>
+  <div class="header-controls">
+    <select id="sel-equip"><option value="">全設備</option></select>
+    <input type="date" id="sel-date-from" title="開始日">
+    <span style="color:var(--text2);font-size:12px">〜</span>
+    <input type="date" id="sel-date-to" title="終了日">
+    <button class="btn-reload" id="btn-reload" onclick="loadData()">
+      <span id="reload-icon">🔄</span> 更新
+    </button>
+  </div>
+</div>
+
+<div class="filter-bar">
+  <span class="filter-label">絞り込み：</span>
+  <button class="filter-chip all active" onclick="setFilter('all')">すべて</button>
+  <button class="filter-chip ng" onclick="setFilter('ng')">⚠ 異常あり</button>
+  <button class="filter-chip replace" onclick="setFilter('replace')">🔧 交換あり</button>
+</div>
+
+<div class="summary-bar" id="summary-bar">
+  <div class="summary-card total"><div class="label">総点検回数</div><div class="value" id="sum-total">—</div></div>
+  <div class="summary-card ng">  <div class="label">異常あり</div>   <div class="value" id="sum-ng">—</div></div>
+  <div class="summary-card rep"> <div class="label">交換あり</div>   <div class="value" id="sum-rep">—</div></div>
+  <div class="summary-card ok">  <div class="label">全正常</div>    <div class="value" id="sum-ok">—</div></div>
+</div>
+
+<div class="main" id="main-content">
+  <div class="loading-state">
+    <div class="loading-spinner"></div>
+    <div>データを読み込んでいます...</div>
+  </div>
+</div>
+
+<script>
+// ━━ 設定 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+const GAS_URL = "https://script.google.com/macros/s/AKfycbwsIz_kuYaE9Bgou0eRjlXy_L1T_rUZOKICNaggaK8ib44I2QfrzQqzInevVxThDkqSpQ/exec";
+
+// ━━ 状態 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+let allRecords = [];
+let currentFilter = 'all';
+
+const STATUS = {
+  "✓正常": "ok", "✕異常": "ng", "↺交換": "replace", "✦清掃": "clean",
+  "ok":"ok","ng":"ng","replace":"replace","clean":"clean"
+};
+const STATUS_LABEL = {
+  ok: "✓ 正常", ng: "✕ 異常", replace: "↺ 交換", clean: "✦ 清掃"
+};
+
+// ━━ データ取得 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+async function loadData() {
+  const btn = document.getElementById('btn-reload');
+  btn.classList.add('loading');
+  document.getElementById('reload-icon').textContent = '⏳';
+  showLoading();
+
+  try {
+    const url = GAS_URL + "?action=getData";
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("HTTP " + res.status);
+    const json = await res.json();
+    if (json.status === 'error') throw new Error(json.message);
+
+    allRecords = json.records || [];
+    updateEquipFilter(allRecords);
+    render();
+  } catch (e) {
+    showError(e.message);
+  } finally {
+    btn.classList.remove('loading');
+    document.getElementById('reload-icon').textContent = '🔄';
+  }
+}
+
+function updateEquipFilter(records) {
+  const equipSet = [...new Set(records.map(r => r.equipName))].sort();
+  const sel = document.getElementById('sel-equip');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">全設備</option>' +
+    equipSet.map(e => `<option value="${e}"${e===cur?' selected':''}>${e}</option>`).join('');
+}
+
+// ━━ フィルター ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function setFilter(f) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-chip').forEach(c => {
+    c.classList.toggle('active', c.classList.contains(f));
+  });
+  render();
+}
+
+function getFilteredRecords() {
+  let records = allRecords;
+
+  const equip = document.getElementById('sel-equip').value;
+  if (equip) records = records.filter(r => r.equipName === equip);
+
+  const from = document.getElementById('sel-date-from').value;
+  const to   = document.getElementById('sel-date-to').value;
+  if (from) records = records.filter(r => r.timestamp >= from);
+  if (to)   records = records.filter(r => r.timestamp <= to + 'T99');
+
+  if (currentFilter === 'ng')      records = records.filter(r => r.hasNG);
+  if (currentFilter === 'replace') records = records.filter(r => r.hasReplace);
+
+  return records;
+}
+
+// ━━ レンダリング ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+function render() {
+  const records = getFilteredRecords();
+  updateSummary(records);
+
+  // 設備ごとにグループ化
+  const byEquip = {};
+  records.forEach(r => {
+    if (!byEquip[r.equipName]) byEquip[r.equipName] = [];
+    byEquip[r.equipName].push(r);
+  });
+
+  const main = document.getElementById('main-content');
+  if (records.length === 0) {
+    main.innerHTML = '<div class="empty-state">📭 該当する記録がありません</div>';
+    return;
+  }
+
+  main.innerHTML = Object.entries(byEquip).map(([equip, recs]) => `
+    <div class="equip-section">
+      <div class="equip-title">
+        🏭 ${equip}
+        <span class="equip-badge">${recs.length}件</span>
+        ${recs.some(r=>r.hasNG) ? '<span class="equip-badge" style="color:var(--ng);border-color:var(--ng)">⚠ 異常あり</span>' : ''}
+      </div>
+      <div class="records-grid">
+        ${recs.map(r => renderCard(r)).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderCard(r) {
+  const cls = r.hasNG ? 'has-ng' : r.hasReplace ? 'has-replace' : 'all-ok';
+
+  // 異常・交換・清掃のみpillに出す（正常は省略）
+  const pills = Object.entries(r.checks)
+    .filter(([,v]) => v !== 'ok')
+    .map(([k,v]) => `<span class="status-pill ${v}">${STATUS_LABEL[v]||v} ${k}</span>`)
+    .join('');
+  const okCount = Object.values(r.checks).filter(v=>v==='ok').length;
+
+  return `
+    <div class="record-card ${cls}" id="card-${r.id}">
+      <div class="record-header" onclick="toggleCard('${r.id}')">
+        <div class="record-time">${formatTime(r.timestamp)}</div>
+        <div class="record-operator">👤 ${r.operator}</div>
+        <div class="record-status-row">
+          ${pills || `<span class="status-pill ok">✓ 全${okCount}項目 正常</span>`}
+        </div>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="record-detail">
+        <div class="detail-grid">
+          ${Object.entries(r.checks).map(([name, status]) => {
+            const note  = r.notes[name]  || '';
+            const parts = r.parts[name]  || '';
+            const sc    = STATUS[status] || 'ok';
+            const extra = sc !== 'ok' ? 'is-' + sc : '';
+            return `
+              <div class="detail-item ${extra}">
+                <div class="detail-name">${name}</div>
+                <div class="detail-result ${sc}">${STATUS_LABEL[sc]||status}</div>
+                ${note  ? `<div class="detail-note">📝 ${note}</div>` : ''}
+                ${parts ? `<div class="detail-parts">🔧 ${parts}</div>` : ''}
+              </div>`;
+          }).join('')}
+        </div>
+        ${r.memo ? `<div class="detail-memo">📌 ${r.memo}</div>` : ''}
+      </div>
+    </div>`;
+}
+
+function toggleCard(id) {
+  document.getElementById('card-' + id).classList.toggle('expanded');
+}
+
+function updateSummary(records) {
+  document.getElementById('sum-total').textContent = records.length;
+  document.getElementById('sum-ng').textContent    = records.filter(r=>r.hasNG).length;
+  document.getElementById('sum-rep').textContent   = records.filter(r=>r.hasReplace).length;
+  document.getElementById('sum-ok').textContent    = records.filter(r=>!r.hasNG&&!r.hasReplace).length;
+}
+
+function formatTime(ts) {
+  if (!ts) return '—';
+  const d = new Date(ts);
+  if (isNaN(d)) return ts;
+  return d.toLocaleDateString('ja-JP') + ' ' +
+    d.toLocaleTimeString('ja-JP', {hour:'2-digit', minute:'2-digit'});
+}
+
+function showLoading() {
+  document.getElementById('main-content').innerHTML =
+    '<div class="loading-state"><div class="loading-spinner"></div><div>読み込み中...</div></div>';
+}
+
+function showError(msg) {
+  document.getElementById('main-content').innerHTML =
+    `<div class="error-state">⚠ データの取得に失敗しました<br><small>${msg}</small><br><br>
+    GASのURLとデプロイ設定を確認してください。</div>`;
+}
+
+// フィルター変更時に再描画
+document.getElementById('sel-equip').addEventListener('change', render);
+document.getElementById('sel-date-from').addEventListener('change', render);
+document.getElementById('sel-date-to').addEventListener('change', render);
+
+// 初回ロード
+loadData();
+</script>
+</body>
+</html>
