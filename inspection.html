@@ -125,6 +125,32 @@ main { max-width: 900px; margin: 0 auto; padding: 20px 16px; display: flex; flex
 }
 .prev-memo-label { font-size: 12px; color: var(--prev-label); font-weight: 700; margin-bottom: 4px; }
 .prev-memo-text { font-size: 14px; color: var(--prev-text); }
+
+/* 前回点検結果パネル */
+.prev-result-header {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 10px 14px; margin-bottom: 8px;
+  cursor: pointer; font-size: 13px; font-weight: 700; color: var(--text2);
+  user-select: none;
+}
+.prev-result-header:hover { opacity: .8; }
+.prev-result-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 6px; margin-bottom: 12px;
+}
+.prev-result-item {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 8px 10px; font-size: 12px;
+}
+.prev-result-name { color: var(--text2); margin-bottom: 3px; font-size: 11px; }
+.prev-result-val { font-weight: 700; }
+.prev-result-val.ok      { color: #22c55e; }
+.prev-result-val.ng      { color: #ef4444; }
+.prev-result-val.replace { color: #3b82f6; }
+.prev-result-val.clean   { color: #a78bfa; }
+body.light .prev-result-header { background: #f0f4ff; border-color: #c7d7f5; color: #1e3a5f; }
+body.light .prev-result-item   { background: #f8faff; border-color: #dde8f8; }
 /* All OK btn */
 .all-ok-btn {
   width: 100%; background: #052e16; color: #22c55e;
@@ -248,6 +274,17 @@ textarea#memo { width: 100%; border-radius: 10px; padding: 12px 16px; resize: ve
   letter-spacing: 0.5px;
 }
 
+/* ── ダッシュボードリンクボタン ── */
+.dashboard-link-btn {
+  background: linear-gradient(135deg,#1d4ed8,#0ea5e9);
+  color: #fff !important; border: none; border-radius: 8px;
+  padding: 7px 14px; font-size: 13px; font-weight: 700;
+  cursor: pointer; text-decoration: none; display: inline-flex;
+  align-items: center; gap: 5px; white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(29,78,216,0.3);
+}
+.dashboard-link-btn:hover { opacity: .85; }
+
 /* ── テーマ切替ボタン ── */
 .theme-btn {
   background: transparent; border: 1px solid rgba(255,255,255,0.3);
@@ -360,6 +397,7 @@ body.light .manual-btn { border-color:#7c3aed; color:#6d28d9; }
       <div class="app-sub">Equipment Inspection System</div>
     </div>
     <div class="operator-box">
+      <a href="https://taku0820.github.io/inspection/dashboard.html" target="_blank" class="dashboard-link-btn">📊 ダッシュボード</a>
       <button class="theme-btn" id="theme-btn" onclick="toggleTheme()">☀ ライト</button>
       <label class="lbl">担当者</label>
       <select id="operator-select" onchange="onOperatorChange(this.value)">
@@ -424,6 +462,15 @@ body.light .manual-btn { border-color:#7c3aed; color:#6d28d9; }
     <div id="prev-memo-box" class="prev-memo-box" style="display:none">
       <div class="prev-memo-label">📌 前回の申し送り事項</div>
       <div class="prev-memo-text" id="prev-memo-text"></div>
+    </div>
+    <!-- 前回点検結果パネル -->
+    <div id="prev-result-box" style="display:none">
+      <div class="prev-result-header" onclick="togglePrevResult()">
+        <span>🕐 前回点検結果を参照</span>
+        <span id="prev-result-date" style="font-size:12px;opacity:.7"></span>
+        <span id="prev-result-toggle" style="margin-left:auto;font-size:12px">▼ 展開</span>
+      </div>
+      <div id="prev-result-body" style="display:none"></div>
     </div>
     <button class="all-ok-btn" onclick="setAllOk()">✓ 全項目を正常(OK)にする</button>
     <div class="item-list" id="item-list"></div>
@@ -811,6 +858,14 @@ let history = [];
 // ── 初期化 ──────────────────────────────
 // ── テーマ切替 ──────────────────────────────
 const THEME_KEY = "fis_theme";
+function togglePrevResult() {
+  const body = document.getElementById("prev-result-body");
+  const tog  = document.getElementById("prev-result-toggle");
+  const open = body.style.display === "none";
+  body.style.display = open ? "block" : "none";
+  tog.textContent = open ? "▲ 閉じる" : "▼ 展開";
+}
+
 function toggleTheme() {
   const isLight = document.body.classList.toggle("light");
   localStorage.setItem(THEME_KEY, isLight ? "light" : "dark");
@@ -1108,6 +1163,29 @@ function selectEquip(equip) {
     pmBox.style.display = "block";
   } else {
     pmBox.style.display = "none";
+  }
+
+  // 前回点検結果パネル
+  const prBox = document.getElementById("prev-result-box");
+  const prBody = document.getElementById("prev-result-body");
+  const prDate = document.getElementById("prev-result-date");
+  if (last && last.checks && Object.keys(last.checks).length > 0) {
+    prDate.textContent = last.timestamp ? "（" + last.timestamp.slice(0,16).replace("T"," ") + "）" : "";
+    const STATUS_LABEL = { ok:"✓ 正常", ng:"✕ 異常", replace:"↺ 交換", clean:"✦ 清掃" };
+    prBody.innerHTML = '<div class="prev-result-grid">' +
+      Object.entries(last.checks).map(([name, status]) =>
+        `<div class="prev-result-item">
+          <div class="prev-result-name">${name}</div>
+          <div class="prev-result-val ${status}">${STATUS_LABEL[status] || status}</div>
+          ${last.notes?.[name] ? `<div style="font-size:10px;color:var(--text2);margin-top:2px">${last.notes[name]}</div>` : ""}
+        </div>`
+      ).join("") + "</div>";
+    prBox.style.display = "block";
+    // 折りたたんだ状態でリセット
+    prBody.style.display = "none";
+    document.getElementById("prev-result-toggle").textContent = "▼ 展開";
+  } else {
+    prBox.style.display = "none";
   }
 
   // 点検項目
